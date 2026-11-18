@@ -1,0 +1,1323 @@
+{
+  "data": {
+    "game": "league-of-legends",
+    "shopDate": "2026-11-18",
+    "updatedAt": "2026-11-18T01:05:29Z",
+    "expiresAt": "2026-11-18T19:00:00.000Z",
+    "stale": false,
+    "sourceTotalItemCount": 164,
+    "mythicItemCount": 62,
+    "sections": [
+      {
+        "title": "Mythic Shop: featured",
+        "upcoming": false,
+        "items": [
+          {
+            "id": "item:skin:96065",
+            "itemKey": "lol:item:skin:96065",
+            "name": "Prestige Classic Baron Kog'Maw",
+            "type": "Kog'Maw",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 150,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-96065-tile-4ddd9c82.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2027-01-07T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:96066",
+            "itemKey": "lol:item:chroma:96066",
+            "name": "Prestige Classic Baron Kog'Maw (Vivid)",
+            "type": "Kog'Maw",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-96066-da10e729-304.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2027-01-07T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:5191",
+            "itemKey": "lol:item:emote:5191",
+            "name": "Lil' Baron",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-5191-9950038a-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2027-01-07T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:245059",
+            "itemKey": "lol:item:skin:245059",
+            "name": "Prestige True Damage Know My Name Ekko",
+            "type": "Ekko",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 150,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-245059-tile-e25454d6.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:245060",
+            "itemKey": "lol:item:chroma:245060",
+            "name": "Prestige True Damage Know My Name Ekko (Vivid)",
+            "type": "Ekko",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-245060-00d2b3fd-304.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:5204",
+            "itemKey": "lol:item:emote:5204",
+            "name": "Time For Triumph",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-5204-6636ff75-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:235009",
+            "itemKey": "lol:item:skin:235009",
+            "name": "Prestige True Damage Senna",
+            "type": "Senna",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 150,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-235009-tile-313e1481.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:3414",
+            "itemKey": "lol:item:emote:3414",
+            "name": "Animated Unimpressed!",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-3414-cf182c19-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:3415",
+            "itemKey": "lol:item:emote:3415",
+            "name": "No Sweat!",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-3415-609783d9-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:4421",
+            "itemKey": "lol:item:emote:4421",
+            "name": "On Mute",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-4421-e87f0590-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:4457",
+            "itemKey": "lol:item:emote:4457",
+            "name": "Look Into The Future",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-4457-718232e3-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:4458",
+            "itemKey": "lol:item:emote:4458",
+            "name": "I'm Not A Rapper",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-4458-3a9c5059-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:4459",
+            "itemKey": "lol:item:emote:4459",
+            "name": "Run It Back",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-4459-c128cb58-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:84031",
+            "itemKey": "lol:item:chroma:84031",
+            "name": "True Damage Akali (Freestyle)",
+            "type": "Akali",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-84031-c19cbe11-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:245022",
+            "itemKey": "lol:item:chroma:245022",
+            "name": "True Damage Ekko (Freestyle)",
+            "type": "Ekko",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-245022-492b2188-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:235002",
+            "itemKey": "lol:item:chroma:235002",
+            "name": "True Damage Senna (Freestyle)",
+            "type": "Senna",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-235002-6cf02ef1-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:157033",
+            "itemKey": "lol:item:chroma:157033",
+            "name": "True Damage Yasuo (Freestyle)",
+            "type": "Yasuo",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-157033-2cfcd979-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-10-21T18:00:00Z",
+              "until": "2026-11-18T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "entry:6ac6919b-f231-4724-87d0-05b966efe5d4",
+            "itemKey": null,
+            "name": "Light the Match",
+            "type": "Other",
+            "rarity": null,
+            "price": {
+              "amount": 250,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": null,
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:28007",
+            "itemKey": "lol:item:skin:28007",
+            "name": "Prestige K/DA Evelynn",
+            "type": "Evelynn",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 150,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-28007-tile-baea0731.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:84013",
+            "itemKey": "lol:item:skin:84013",
+            "name": "Prestige K/DA Akali",
+            "type": "Akali",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 150,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-84013-tile-8ea68e3c.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:800010",
+            "itemKey": "lol:item:skin:800010",
+            "name": "Prestige Winterblessed Mel",
+            "type": "Mel",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 150,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-800010-tile-6c836196.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:79049",
+            "itemKey": "lol:item:chroma:79049",
+            "name": "Music Fan Gragas (FIRESTARTER)",
+            "type": "Gragas",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-79049-44392d4e-304.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:28023",
+            "itemKey": "lol:item:chroma:28023",
+            "name": "K/DA ALL OUT Evelynn (BADDEST)",
+            "type": "Evelynn",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-28023-6d586c8c-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:84047",
+            "itemKey": "lol:item:chroma:84047",
+            "name": "K/DA ALL OUT Akali (BADDEST)",
+            "type": "Akali",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-84047-4d909b5d-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:103041",
+            "itemKey": "lol:item:chroma:103041",
+            "name": "K/DA ALL OUT Ahri (BADDEST)",
+            "type": "Ahri",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-103041-866c8eab-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:145028",
+            "itemKey": "lol:item:chroma:145028",
+            "name": "K/DA ALL OUT Kai'sa (BADDEST)",
+            "type": "Kai'Sa",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-145028-c69f7500-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:10005",
+            "itemKey": "lol:item:emote:10005",
+            "name": "Pleeease!",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-10005-d36b078a-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:3199",
+            "itemKey": "lol:item:emote:3199",
+            "name": "Mic Drop",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-3199-c737f0da-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:3426",
+            "itemKey": "lol:item:emote:3426",
+            "name": "Irresistible!",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-3426-1353ec73-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:3519",
+            "itemKey": "lol:item:emote:3519",
+            "name": "Sorry Not Sorry!",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-3519-41ea7b0a-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:3563",
+            "itemKey": "lol:item:emote:3563",
+            "name": "Crazy A-Bao You",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-3563-2d438ed4-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:3568",
+            "itemKey": "lol:item:emote:3568",
+            "name": "What the Baddest Do",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-3568-ac374367-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:4419",
+            "itemKey": "lol:item:emote:4419",
+            "name": "Heading Out",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-4419-5606754b-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:4682",
+            "itemKey": "lol:item:emote:4682",
+            "name": "Hrmph...",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-4682-2b7cb9f2-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:4911",
+            "itemKey": "lol:item:emote:4911",
+            "name": "FABULOUS!",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-4911-521b9288-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:icon:4759",
+            "itemKey": "lol:item:icon:4759",
+            "name": "2020 K/DA ALL OUT Icon",
+            "type": "Summoner icon",
+            "rarity": null,
+            "price": {
+              "amount": 5,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/icon-4759-1d53d6de-300.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:icon:10005",
+            "itemKey": "lol:item:icon:10005",
+            "name": "Chibi Superstar Icon",
+            "type": "Summoner icon",
+            "rarity": null,
+            "price": {
+              "amount": 5,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/icon-10005-5211ec96-300.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:ward:205",
+            "itemKey": "lol:item:ward:205",
+            "name": "K/DA ALL OUT Ward",
+            "type": "Ward skin",
+            "rarity": null,
+            "price": {
+              "amount": 50,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/ward-205-f2517718-550.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-04T19:00:00Z",
+              "until": "2026-12-09T19:00:00Z"
+            },
+            "soldOut": false
+          }
+        ]
+      },
+      {
+        "title": "Mythic Shop: biweekly",
+        "upcoming": false,
+        "items": [
+          {
+            "id": "item:skin:111036",
+            "itemKey": "lol:item:skin:111036",
+            "name": "Crystalis Indomitus Nautilus",
+            "type": "Nautilus",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 125,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-111036-tile-3c10bbec.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-26T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:15009",
+            "itemKey": "lol:item:skin:15009",
+            "name": "Neo PAX Sivir",
+            "type": "Sivir",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 125,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-15009-tile-cbca8749.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-26T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:80036",
+            "itemKey": "lol:item:skin:80036",
+            "name": "Ashen Conqueror Pantheon",
+            "type": "Pantheon",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 125,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-80036-tile-d56ec635.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-26T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:33016",
+            "itemKey": "lol:item:skin:33016",
+            "name": "Hextech Rammus",
+            "type": "Rammus",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 125,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-33016-tile-5b89b73d.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-26T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:142019",
+            "itemKey": "lol:item:skin:142019",
+            "name": "Prestige Arcanist Zoe",
+            "type": "Zoe",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 150,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-142019-tile-2ab800a3.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-26T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:16017",
+            "itemKey": "lol:item:skin:16017",
+            "name": "Prestige Star Guardian Soraka",
+            "type": "Soraka",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 150,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-16017-tile-75c11969.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-26T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:115023",
+            "itemKey": "lol:item:skin:115023",
+            "name": "Hextech Ziggs",
+            "type": "Ziggs",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 125,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-115023-tile-a4bdbccd.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-26T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:164032",
+            "itemKey": "lol:item:skin:164032",
+            "name": "Prestige Winterblessed Camille",
+            "type": "Camille",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 150,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-164032-tile-780ce61a.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-26T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:82042",
+            "itemKey": "lol:item:skin:82042",
+            "name": "Ashen Graveknight Mordekaiser",
+            "type": "Mordekaiser",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 125,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-82042-tile-38ca246b.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-26T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:81023",
+            "itemKey": "lol:item:skin:81023",
+            "name": "Prestige PsyOps Ezreal",
+            "type": "Ezreal",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 150,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-81023-tile-becb8847.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-26T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:58017",
+            "itemKey": "lol:item:skin:58017",
+            "name": "Hextech Renekton",
+            "type": "Renekton",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 125,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-58017-tile-ba935ffa.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-26T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:skin:131065",
+            "itemKey": "lol:item:skin:131065",
+            "name": "Prestige Dark Cosmic Diana",
+            "type": "Diana",
+            "rarity": {
+              "name": "Mythic"
+            },
+            "price": {
+              "amount": 150,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/skin-131065-tile-dc3abeb9.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-26T00:00:00Z"
+            },
+            "soldOut": false
+          }
+        ]
+      },
+      {
+        "title": "Mythic Shop: weekly",
+        "upcoming": false,
+        "items": [
+          {
+            "id": "item:chroma:89013",
+            "itemKey": "lol:item:chroma:89013",
+            "name": "Mecha Kingdoms Leona (Peacekeeper)",
+            "type": "Leona",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-89013-9ec6fbee-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-19T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:154023",
+            "itemKey": "lol:item:chroma:154023",
+            "name": "Empyrean Zac (Neon Flare)",
+            "type": "Zac",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-154023-1775d7ef-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-19T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:498062",
+            "itemKey": "lol:item:chroma:498062",
+            "name": "Battle Academia Xayah (Rebelguard)",
+            "type": "Xayah",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-498062-3ca35b78-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-19T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:432016",
+            "itemKey": "lol:item:chroma:432016",
+            "name": "Astronaut Bard (Chrono)",
+            "type": "Bard",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-432016-86799ba6-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-19T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:142042",
+            "itemKey": "lol:item:chroma:142042",
+            "name": "Dark Star Zoe (Quasar)",
+            "type": "Zoe",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-142042-c1551bd8-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-19T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:16036",
+            "itemKey": "lol:item:chroma:16036",
+            "name": "Spirit Blossom Soraka (Night Blossom)",
+            "type": "Soraka",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-16036-5cffd40f-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-19T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:101006",
+            "itemKey": "lol:item:chroma:101006",
+            "name": "Dark Star Xerath (Antimatter)",
+            "type": "Xerath",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-101006-cb2c9526-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-19T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:chroma:59055",
+            "itemKey": "lol:item:chroma:59055",
+            "name": "Prestige Visions of the Fallen Jarvan IV (Vivid)",
+            "type": "Jarvan IV",
+            "rarity": null,
+            "price": {
+              "amount": 35,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/chroma-59055-69516d44-303.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-12T00:00:00Z",
+              "until": "2026-11-19T00:00:00Z"
+            },
+            "soldOut": false
+          }
+        ]
+      },
+      {
+        "title": "Mythic Shop: daily",
+        "upcoming": false,
+        "items": [
+          {
+            "id": "item:emote:3859",
+            "itemKey": "lol:item:emote:3859",
+            "name": "That Didn't Age Well",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-3859-a0d44af7-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-18T00:00:00Z",
+              "until": "2026-11-19T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:4236",
+            "itemKey": "lol:item:emote:4236",
+            "name": "So Sad",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-4236-6de97349-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-18T00:00:00Z",
+              "until": "2026-11-19T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:emote:4390",
+            "itemKey": "lol:item:emote:4390",
+            "name": "Dawn Has Arrived",
+            "type": "Emote",
+            "rarity": null,
+            "price": {
+              "amount": 25,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/emote-4390-d433ebf4-256.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-18T00:00:00Z",
+              "until": "2026-11-19T00:00:00Z"
+            },
+            "soldOut": false
+          },
+          {
+            "id": "item:icon:7030",
+            "itemKey": "lol:item:icon:7030",
+            "name": "Best Enemies Icon",
+            "type": "Summoner icon",
+            "rarity": null,
+            "price": {
+              "amount": 5,
+              "currency": "Mythic Essence"
+            },
+            "images": {
+              "card": "https://cdn.source.gs/league-of-legends/img/icon-7030-a7b03715-300.webp",
+              "render": null
+            },
+            "availability": {
+              "from": "2026-11-18T00:00:00Z",
+              "until": "2026-11-19T00:00:00Z"
+            },
+            "soldOut": false
+          }
+        ]
+      }
+    ]
+  },
+  "meta": {
+    "generatedAt": "2026-11-18T06:01:29.676Z",
+    "attribution": {
+      "text": "Data from itemshop.gg",
+      "url": "https://itemshop.gg/league-of-legends"
+    },
+    "docs": "https://itemshop.gg/developers",
+    "terms": "https://itemshop.gg/terms#api",
+    "note": "This is a public shop feed read from the EUW client, not a per-account or Korea-region guarantee."
+  }
+}

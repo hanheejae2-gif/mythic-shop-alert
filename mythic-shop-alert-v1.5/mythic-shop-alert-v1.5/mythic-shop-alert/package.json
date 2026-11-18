@@ -1,0 +1,25 @@
+{
+  "name": "mythic-shop-alert",
+  "version": "1.5.0",
+  "private": true,
+  "description": "League of Legends Mythic Shop Master Pool expanded with 159 Mythic-rarity skin candidates and per-device push controls",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "vapid": "node scripts/generate-vapid.js",
+    "sync:history": "node scripts/sync-history.js",
+    "check": "node --check server.js && node --check public/app.js && node --check public/sw.js && node --check scripts/sync-history.js && node --check scripts/generate-vapid.js && node --check scripts/import-master-pool.js && node --check lib/history-sync.js && node --check lib/master-pool.js && node --check scripts/verify-master-pool.js && node scripts/verify-master-pool.js && node -e \"JSON.parse(require('fs').readFileSync('data/master-pool-seed.json', 'utf8')); JSON.parse(require('fs').readFileSync('public/champion-aliases-ko.json', 'utf8')); JSON.parse(require('fs').readFileSync('public/skin-aliases-ko.json', 'utf8'))\"",
+    "import:master-pool": "node scripts/import-master-pool.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.4.1",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "node-cron": "^4.2.1",
+    "web-push": "^3.6.7"
+  }
+}

@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#11121b">
+  <meta name="description" content="리그 오브 레전드 신화 정수 상점 로테이션과 즐겨찾기 상품 입고 알림">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="신화 상점 알리미">
+  <link rel="manifest" href="/manifest.webmanifest?v=1.5">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon-192.png">
+  <link rel="stylesheet" href="/styles.css?v=1.5">
+  <title>신화 상점 알리미</title>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="신화 상점 알리미 홈">
+        <span class="brand-mark">✦</span>
+        <span><strong>신화 상점 알리미</strong><small>LEAGUE OF LEGENDS · MYTHIC SHOP</small></span>
+      </a>
+      <button class="icon-button" id="refreshButton" type="button" aria-label="상점 새로고침" title="새로고침">↻</button>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="heroTitle">
+        <div class="hero-copy">
+          <div class="eyebrow"><span class="live-dot"></span> MYTHIC ESSENCE TRACKER</div>
+          <h1 id="heroTitle">놓치고 싶지 않은<br><em>신화 정수 상품</em></h1>
+          <p>Master Pool에서 원하는 상품을 저장하고, 입고 알림을 켜고 끌 수 있어요.</p>
+        </div>
+        <div class="hero-art" aria-hidden="true"><span>✦</span><i>✧</i></div>
+      </section>
+
+      <section class="status-strip" aria-label="상점 데이터 상태">
+        <div><span class="status-label">오늘의 상점</span><strong id="todayDate">불러오는 중</strong></div>
+        <div class="status-right"><span id="shopStatus" class="status-pill">확인 중</span><small id="lastUpdated">데이터 확인 중</small></div>
+      </section>
+
+      <section class="notification-panel" id="notificationPanel">
+        <div class="notification-symbol">♢</div>
+        <div class="notification-copy">
+          <strong id="notificationTitle">즐겨찾기 입고 알림 설정</strong>
+          <span id="notificationDescription">원하는 상품이 로테이션에 등장하면 휴대폰으로 알려드려요. 필요할 때 언제든 켜거나 끌 수 있어요.</span>
+        </div>
+        <button class="primary-button compact" id="enableNotifications" type="button">알림 켜기</button>
+      </section>
+
+      <nav class="tabs" aria-label="화면 선택">
+        <button class="tab-button active" data-tab="favorites" type="button"><span>★</span> 즐겨찾기 목록 <b id="favoriteCount">0</b></button>
+        <button class="tab-button" data-tab="today" type="button"><span>◈</span> 오늘의 상점</button>
+      </nav>
+
+      <section class="tab-panel active" id="favoritesPanel">
+        <div class="section-heading">
+          <div><p class="eyebrow">MY WISHLIST</p><h2>즐겨찾기 목록</h2></div>
+          <span class="subtle-count" id="catalogCount">상품 불러오는 중</span>
+        </div>
+        <p class="section-description">한국어 챔피언명·일부 한국어 스킨명 또는 영문 상품명으로 검색할 수 있어요. 목록에서 ★를 누르면 로테이션 입고 알림을 받을 수 있습니다.</p>
+        <div class="search-row">
+          <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="한국어 스킨명·챔피언명 또는 영문 상품명 검색" autocomplete="off"></label>
+          <select id="categoryFilter" aria-label="상품 종류 필터">
+            <option value="all">전체</option>
+            <option value="skin">스킨</option>
+            <option value="chroma">크로마</option>
+            <option value="emote">감정표현</option>
+            <option value="icon">아이콘</option>
+            <option value="ward">와드</option>
+            <option value="other">기타</option>
+          </select>
+        </div>
+        <div class="filter-line">
+          <button id="allItemsFilter" class="filter-chip selected" type="button">전체 상품</button>
+          <button id="starredItemsFilter" class="filter-chip" type="button">★ 즐겨찾기만</button>
+          <span class="filter-spacer"></span>
+          <span class="result-count" id="resultCount"></span>
+        </div>
+        <div class="item-list" id="catalogList" aria-live="polite">
+          <div class="loading-state">상점 목록을 가져오고 있어요…</div>
+        </div>
+        <div class="catalog-note" id="catalogNote"></div>
+      </section>
+
+      <section class="tab-panel" id="todayPanel" hidden>
+        <div class="section-heading">
+          <div><p class="eyebrow">ROTATION · TODAY</p><h2>오늘의 신화 정수 상점</h2></div>
+          <span class="subtle-count" id="todayItemCount">0개 상품</span>
+        </div>
+        <p class="section-description">현재 구매 가능한 상품이에요. 상품 오른쪽의 ★를 누르면 즐겨찾기에 추가할 수 있어요.</p>
+        <div id="todaySections" class="today-sections"><div class="loading-state">오늘의 상품을 확인하고 있어요…</div></div>
+      </section>
+
+      <footer class="app-footer">
+        <div class="footer-meta"><span>데이터 갱신 · 매일 00:05 KST + 로테이션 감지</span><span>알림은 기기별로 등록됩니다</span></div>
+        <a href="https://itemshop.gg/league-of-legends" target="_blank" rel="noopener noreferrer">Data from itemshop.gg ↗</a>
+      </footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js?v=1.5" defer></script>
+</body>
+</html>

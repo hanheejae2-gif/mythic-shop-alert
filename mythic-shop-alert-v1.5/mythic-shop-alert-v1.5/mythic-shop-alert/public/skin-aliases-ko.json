@@ -1,0 +1,158 @@
+{
+  "dataDragonVersion": "16.23.1",
+  "locale": "ko_KR",
+  "items": {
+    "15009": {
+      "name": "네오 PAX 시비르",
+      "champion": "시비르"
+    },
+    "16017": {
+      "name": "프레스티지 별 수호자 소라카",
+      "champion": "소라카"
+    },
+    "16036": {
+      "name": "영혼의 꽃 소라카 (밤의 꽃)",
+      "champion": "소라카"
+    },
+    "28007": {
+      "name": "프레스티지 K/DA 이블린",
+      "champion": "이블린"
+    },
+    "28023": {
+      "name": "K/DA ALL OUT 이블린 (BADDEST)",
+      "champion": "이블린"
+    },
+    "33016": {
+      "name": "마법공학 람머스",
+      "champion": "람머스"
+    },
+    "58017": {
+      "name": "마법공학 레넥톤",
+      "champion": "레넥톤"
+    },
+    "59055": {
+      "name": "프레스티지 타락의 환영 자르반 4세 (강렬)",
+      "champion": "자르반 4세"
+    },
+    "79049": {
+      "name": "음악 팬 그라가스 (FIRESTARTER)",
+      "champion": "그라가스"
+    },
+    "80036": {
+      "name": "재의 정복자 판테온",
+      "champion": "판테온"
+    },
+    "81023": {
+      "name": "프레스티지 초능력특공대 이즈리얼",
+      "champion": "이즈리얼"
+    },
+    "82042": {
+      "name": "재의 파멸기사 모데카이저",
+      "champion": "모데카이저"
+    },
+    "84013": {
+      "name": "프레스티지 K/DA 아칼리",
+      "champion": "아칼리"
+    },
+    "84031": {
+      "name": "True Damage 아칼리 (프리스타일)",
+      "champion": "아칼리"
+    },
+    "84047": {
+      "name": "K/DA ALL OUT 아칼리 (BADDEST)",
+      "champion": "아칼리"
+    },
+    "89013": {
+      "name": "메카 삼국 레오나 (평화의 상징)",
+      "champion": "레오나"
+    },
+    "96065": {
+      "name": "프레스티지 클래식 코그모 남작",
+      "champion": "코그모"
+    },
+    "96066": {
+      "name": "프레스티지 클래식 코그모 남작 (강렬)",
+      "champion": "코그모"
+    },
+    "101006": {
+      "name": "암흑의 별 제라스 (반물질)",
+      "champion": "제라스"
+    },
+    "103041": {
+      "name": "K/DA ALL OUT 아리 (BADDEST)",
+      "champion": "아리"
+    },
+    "111036": {
+      "name": "야성의 수정 노틸러스",
+      "champion": "노틸러스"
+    },
+    "115023": {
+      "name": "마법공학 직스",
+      "champion": "직스"
+    },
+    "131065": {
+      "name": "프레스티지 암흑 우주 다이애나",
+      "champion": "다이애나"
+    },
+    "142019": {
+      "name": "프레스티지 비전 마법사 조이",
+      "champion": "조이"
+    },
+    "142042": {
+      "name": "암흑의 별 조이 (퀘이사)",
+      "champion": "조이"
+    },
+    "145028": {
+      "name": "K/DA ALL OUT 카이사 (BADDEST)",
+      "champion": "카이사"
+    },
+    "154023": {
+      "name": "창공 자크 (네온 불꽃)",
+      "champion": "자크"
+    },
+    "157033": {
+      "name": "True Damage 야스오 (프리스타일)",
+      "champion": "야스오"
+    },
+    "164032": {
+      "name": "프레스티지 겨울의 축복 카밀",
+      "champion": "카밀"
+    },
+    "235002": {
+      "name": "True Damage 세나 (프리스타일)",
+      "champion": "세나"
+    },
+    "235009": {
+      "name": "프레스티지 True Damage 세나",
+      "champion": "세나"
+    },
+    "245022": {
+      "name": "True Damage 에코 (프리스타일)",
+      "champion": "에코"
+    },
+    "245059": {
+      "name": "프레스티지 True Damage Know My Name 에코",
+      "champion": "에코"
+    },
+    "245060": {
+      "name": "프레스티지 True Damage Know My Name 에코 (강렬)",
+      "champion": "에코"
+    },
+    "432016": {
+      "name": "우주비행사 바드 (시공간)",
+      "champion": "바드"
+    },
+    "498062": {
+      "name": "전투사관학교 자야 (반군)",
+      "champion": "자야"
+    },
+    "800010": {
+      "name": "프레스티지 겨울의 축복 멜",
+      "champion": "멜"
+    },
+    "78015": {
+      "name": "마법공학 뽀삐",
+      "champion": "뽀삐"
+    }
+  }
+}

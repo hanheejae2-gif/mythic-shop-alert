@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "dataset": "LoL Mythic rarity catalogue skin candidates",
+  "capturedAt": "2026-11-18",
+  "source": "https://itemshop.gg/league-of-legends/catalogue",
+  "filters": {
+    "rarity": "Mythic",
+    "type": "SKIN"
+  },
+  "counts": {
+    "catalogueListings": 173,
+    "uniqueSkinIds": 159,
+    "duplicateListingsRemoved": 14,
+    "alreadyPresentInV14Seed": 1,
+    "additionalSeedEntriesComparedWithV14": 158,
+    "confirmedStoreEligibility": 0,
+    "candidateItems": 159
+  },
+  "categoryCounts": {
+    "Anniversary": 2,
+    "Ashen": 3,
+    "Ashen Knight": 1,
+    "Ashen Slayer": 1,
+    "Battle Bunny": 1,
+    "Crystalis": 6,
+    "DJ": 1,
+    "Dark Cosmic": 1,
+    "Dark Star": 1,
+    "Dawnbringer": 1,
+    "Dreadnova": 1,
+    "Eclipse": 1,
+    "Galaxy Slayer": 1,
+    "God-King": 2,
+    "Heavenscale": 1,
+    "Hextech": 15,
+    "High Noon": 1,
+    "K/DA": 2,
+    "Lancer": 1,
+    "Nightbringer": 1,
+    "PAX": 2,
+    "PROJECT": 1,
+    "Porcelain": 1,
+    "Prestige": 102,
+    "Risen Legend": 3,
+    "Soulstealer": 1,
+    "Spirit Blossom": 1,
+    "Sunken Shadows": 2,
+    "T1": 1,
+    "True Damage": 1
+  },
+  "eligibilityWarning": "itemshop.gg 카탈로그에서 Mythic 희귀도 및 SKIN 유형 필터로 확인된 항목입니다. 이 필터는 상품의 희귀도를 나타내며, 해당 상품의 신화 정수 상점 판매 이력이나 향후 판매 가능성을 단독으로 증명하지 않습니다. 따라서 실제 Mythic Shop 관측 전까지 candidate(판매 후보)로 저장합니다.",
+  "notCollectedInThisPass": [
+    "CHROMA",
+    "SUMMONER ICON",
+    "WARD SKIN",
+    "EMOTE",
+    "OTHER"
+  ],
+  "seedFile": "data/master-pool-seed.json"
+}
