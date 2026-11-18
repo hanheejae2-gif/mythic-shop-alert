@@ -12,7 +12,7 @@ const { ensureHistoryTables, syncHistoryCatalog } = require('./lib/history-sync'
 const PORT = Number(process.env.PORT || 3000);
 const API_SHOP = 'https://itemshop.gg/api/v1/shop/league-of-legends';
 const API_ROTATIONS = 'https://itemshop.gg/api/v1/rotations';
-const PROJECT_UA = 'Mythic-Shop-Alert/1.1 (+self-hosted PWA)';
+const PROJECT_UA = 'Mythic-Shop-Alert/1.2 (+self-hosted PWA)';
 const ROOT = __dirname;
 const DB_PATH = path.resolve(ROOT, process.env.DATABASE_PATH || './data/mythic-shop.sqlite');
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
@@ -373,12 +373,20 @@ async function runHistoryCatalogSync(reason = 'scheduled') {
   if (!process.env.ITEMSHOP_API_KEY) return { skipped: true, reason: 'ITEMSHOP_API_KEY is not configured' };
   if (historySyncInProgress) return { skipped: true, reason: 'history sync already in progress' };
   historySyncInProgress = true;
+  const startedAt = new Date().toISOString();
+  setState.run('history_catalog_syncing', '1');
+  setState.run('history_catalog_attempted_at', startedAt);
+  setState.run('history_catalog_error', '');
   try {
     const result = await syncHistoryCatalog(db, { apiKey: process.env.ITEMSHOP_API_KEY, delayMs: 200 });
     if (!result.skipped) {
       setState.run('history_catalog_synced_at', result.syncedAt);
-      setState.run('history_catalog_error', '');
-      console.log(`[history] ${reason}: imported ${result.newlyImportedDays} new days; catalog has ${result.catalogItems} items.`);
+      setState.run('history_available_days', String(result.availableHistoryDays));
+      setState.run('history_pending_days', String(result.pendingDays));
+      setState.run('history_catalog_error', result.errors?.length
+        ? `${result.errors.length}개 날짜 수집 실패: ${result.errors.slice(0, 3).map(entry => `${entry.date} ${entry.message}`).join(' / ')}`
+        : '');
+      console.log(`[history] ${reason}: imported ${result.newlyImportedDays} new days; pending ${result.pendingDays}; catalog has ${result.catalogItems} items.`);
     }
     return result;
   } catch (error) {
@@ -386,6 +394,7 @@ async function runHistoryCatalogSync(reason = 'scheduled') {
     console.error(`[history] ${reason} failed:`, error.message);
     return { skipped: false, error: error.message };
   } finally {
+    setState.run('history_catalog_syncing', '0');
     historySyncInProgress = false;
   }
 }
@@ -406,7 +415,7 @@ app.get('/api/config', (req, res) => {
 
 app.get('/api/health', (req, res) => {
   const shop = db.prepare('SELECT fetched_at FROM current_shop WHERE singleton = 1').get();
-  res.json({ ok: true, shopFetchedAt: shop?.fetched_at || null, serverTime: new Date().toISOString(), timezone: 'Asia/Seoul' });
+  res.json({ ok: true, shopFetchedAt: shop?.fetched_at || null, serverTime: new Date().toISOString(), timezone: 'Asia/Seoul', historySyncing: stateValue('history_catalog_syncing', '0') === '1', historyError: stateValue('history_catalog_error') });
 });
 
 app.get('/api/shop/today', (req, res) => {
@@ -419,21 +428,30 @@ app.get('/api/catalog', (req, res) => {
   const rows = db.prepare("SELECT item_json, active, first_seen, last_seen FROM catalog_items ORDER BY json_extract(item_json, '$.name') COLLATE NOCASE").all();
   const items = rows.map(row => ({ ...JSON.parse(row.item_json), active: Boolean(row.active), firstSeen: row.first_seen, lastSeen: row.last_seen }));
   const historyStats = db.prepare(`SELECT COUNT(*) AS dayCount, MIN(shop_date) AS fromDate, MAX(shop_date) AS toDate FROM history_days`).get();
+  const apiKeyConfigured = Boolean(process.env.ITEMSHOP_API_KEY);
+  const availableDays = Number(stateValue('history_available_days', '0')) || 0;
+  const pendingDays = Math.max(0, availableDays - historyStats.dayCount);
+  const isSyncing = stateValue('history_catalog_syncing', '0') === '1';
+  const lastError = stateValue('history_catalog_error');
   const note = historyStats.dayCount > 0
-    ? `itemshop.gg가 기록한 ${historyStats.dayCount}개 상점 변경일(${historyStats.fromDate} ~ ${historyStats.toDate})의 신화 상점 상품을 합친 목록입니다. 현재 판매/판매 예정 상품도 포함합니다. 기록 시작 이전의 역대 상품은 포함되지 않을 수 있습니다.`
-    : (process.env.ITEMSHOP_API_KEY
-      ? '과거 상점 이력 동기화를 준비 중입니다. 잠시 후 새로고침하거나 서버 로그를 확인해 주세요.'
-      : '현재 판매 및 판매 예정 상품만 수집된 상태입니다. 과거 전체 기록을 추가하려면 서버에 ITEMSHOP_API_KEY를 설정하고 history 동기화를 실행하세요.');
+    ? `itemshop.gg가 기록한 ${historyStats.dayCount}개 상점 변경일(${historyStats.fromDate} ~ ${historyStats.toDate})의 신화 상점 상품을 합친 목록입니다. ${pendingDays > 0 ? `아직 ${pendingDays}개 기록일을 가져오는 중입니다. ` : ''}현재 판매/판매 예정 상품도 포함합니다. itemshop.gg의 LoL 기록 시작일 이전 상품은 포함되지 않을 수 있습니다.`
+    : (apiKeyConfigured
+      ? (isSyncing ? 'itemshop.gg의 과거 상점 기록을 처음 가져오고 있습니다. 목록이 자동으로 갱신됩니다.' : '과거 상점 이력 동기화를 준비 중입니다. 잠시 후 다시 확인해 주세요.')
+      : '현재 판매 및 판매 예정 상품만 수집된 상태입니다. 과거 상품을 가져오려면 서버에 ITEMSHOP_API_KEY를 설정해야 합니다.');
   res.json({
     items,
     count: items.length,
     history: {
-      apiKeyConfigured: Boolean(process.env.ITEMSHOP_API_KEY),
+      apiKeyConfigured,
+      syncing: isSyncing,
+      availableDays,
+      pendingDays,
       importedDays: historyStats.dayCount,
       fromDate: historyStats.fromDate,
       throughDate: historyStats.toDate,
+      lastAttemptAt: stateValue('history_catalog_attempted_at'),
       lastSyncedAt: stateValue('history_catalog_synced_at'),
-      lastError: stateValue('history_catalog_error')
+      lastError
     },
     catalogNote: note
   });

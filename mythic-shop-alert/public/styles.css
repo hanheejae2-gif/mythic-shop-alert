@@ -111,3 +111,7 @@ button { cursor: pointer; }
   .item-meta { font-size: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; } }
+
+/* Keep favourite arrivals visually distinct at the top of Today's shop. */
+.today-favorites-block { padding: 12px; margin: 0 0 20px; border: 1px solid rgba(229,187,97,.34); border-radius: 18px; background: linear-gradient(135deg, rgba(229,187,97,.09), rgba(143,120,217,.045)); }
+.today-favorites-block .section-block-header h3 { color: var(--gold); }

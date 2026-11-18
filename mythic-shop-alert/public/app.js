@@ -11,8 +11,11 @@ const state = {
   tab: new URLSearchParams(location.search).get('tab') === 'today' ? 'today' : 'favorites',
   starredOnly: false,
   serviceWorker: null,
-  toastTimer: null
+  toastTimer: null,
+  championAliases: {},
+  skinAliases: {}
 };
+let historyCatalogPollTimer = null;
 
 function getDeviceId() {
   try {
@@ -110,12 +113,100 @@ function itemCard(item, context = 'catalog') {
     </article>`;
 }
 
+function normalizeSearchText(value) {
+  return String(value ?? '')
+    .normalize('NFKC')
+    .toLocaleLowerCase('ko-KR')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
+    .trim();
+}
+
+function compactSearchText(value) {
+  return normalizeSearchText(value).replace(/\s+/g, '');
+}
+
+function championAlias(type) {
+  const normalized = compactSearchText(type);
+  if (!normalized) return '';
+  const overrides = {
+    'jarvaniv': '자르반 4세',
+    'kaisa': '카이사',
+    'kogmaw': '코그모',
+    'ksante': '크산테',
+    'renataglasc': '레나타 글라스크',
+    'masteryi': '마스터 이',
+    'leesin': '리 신',
+    'xinzhao': '신 짜오',
+    'twistedfate': '트위스티드 페이트',
+    'wukong': '오공',
+    'monkeyking': '오공',
+    'chogath': '초가스',
+    'velkoz': '벨코즈',
+    'reksai': '렉사이',
+    'aurelionsol': '아우렐리온 솔',
+    'nunuandwillump': '누누와 윌럼프',
+    'missfortune': '미스 포츈'
+  };
+  return overrides[normalized] || state.championAliases[normalized] || '';
+}
+
+const KOREAN_NAME_ALIASES = [
+  ['prestige', '프레스티지'],
+  ['hextech', '마법공학'],
+  ['ashen', '재의'],
+  ['mythic', '신화 신화급'],
+  ['dark cosmic', '암흑 우주'],
+  ['star guardian', '별 수호자'],
+  ['spirit blossom', '영혼의 꽃'],
+  ['true damage', '트루 데미지'],
+  ['winterblessed', '겨울의 축복'],
+  ['battle academia', '전투사관학교'],
+  ['mecha kingdoms', '메카 삼국'],
+  ['k/da', 'kda 케이디에이'],
+  ['emote', '감정표현'],
+  ['chroma', '크로마'],
+  ['ward', '와드'],
+  ['icon', '아이콘']
+];
+
+function localizedItemAlias(item) {
+  const rawId = String(item.id || item.key || '');
+  const numericId = rawId.split(':').pop();
+  const alias = state.skinAliases[numericId];
+  return alias ? `${alias.name || ''} ${alias.champion || ''}`.trim() : '';
+}
+
+function searchableItemText(item) {
+  const values = [
+    item.name,
+    item.type,
+    championAlias(item.type),
+    localizedItemAlias(item),
+    categoryLabel(item),
+    item.rarity?.name,
+    item.rarity?.name === 'Mythic' ? '신화 신화급' : ''
+  ];
+  const englishName = String(item.name || '').toLocaleLowerCase('en-US');
+  for (const [english, korean] of KOREAN_NAME_ALIASES) {
+    if (englishName.includes(english)) values.push(korean);
+  }
+  return normalizeSearchText(values.filter(Boolean).join(' '));
+}
+
+function matchesSearch(item, query) {
+  const normalizedQuery = normalizeSearchText(query);
+  if (!normalizedQuery) return true;
+  const itemText = searchableItemText(item);
+  const itemCompact = compactSearchText(itemText);
+  const tokens = normalizedQuery.split(/\s+/).filter(Boolean);
+  return tokens.every(token => itemText.includes(token) || itemCompact.includes(token.replace(/\s+/g, '')));
+}
+
 function renderCatalog() {
-  const query = $('#searchInput').value.trim().toLocaleLowerCase();
+  const query = $('#searchInput').value;
   const category = $('#categoryFilter').value;
   let items = state.catalog.filter(item => {
-    const text = `${item.name} ${item.type || ''}`.toLocaleLowerCase();
-    return (!query || text.includes(query)) && (category === 'all' || categoryOf(item) === category) &&
+    return matchesSearch(item, query) && (category === 'all' || categoryOf(item) === category) &&
       (!state.starredOnly || state.favorites.has(item.key));
   });
   items.sort((a, b) => Number(state.favorites.has(b.key)) - Number(state.favorites.has(a.key)) || a.name.localeCompare(b.name));
@@ -123,7 +214,7 @@ function renderCatalog() {
   $('#catalogCount').textContent = `${state.catalog.length}개 상품`;
   $('#favoriteCount').textContent = state.favorites.size;
   if (!items.length) {
-    $('#catalogList').innerHTML = `<div class="empty-state"><strong>${state.starredOnly ? '아직 즐겨찾기한 상품이 없어요.' : '검색 결과가 없어요.'}</strong>${state.starredOnly ? '상품 카드의 별표를 눌러 관심 상품을 추가하세요.' : '검색어나 상품 종류를 바꿔보세요.'}</div>`;
+    $('#catalogList').innerHTML = `<div class="empty-state"><strong>${state.starredOnly ? '아직 즐겨찾기한 상품이 없어요.' : '검색 결과가 없어요.'}</strong>${state.starredOnly ? '상품 카드의 별표를 눌러 관심 상품을 추가하세요.' : '한국어 스킨명·챔피언명 또는 영문 상품명으로 검색해 보세요.'}</div>`;
   } else {
     $('#catalogList').innerHTML = items.map(item => itemCard(item)).join('');
   }
@@ -142,11 +233,32 @@ function renderToday() {
     $('#todaySections').innerHTML = '<div class="empty-state"><strong>현재 표시할 신화 정수 상품이 없어요.</strong>상점 데이터가 갱신됐는지 잠시 후 다시 확인해 주세요.</div>';
     return;
   }
-  $('#todaySections').innerHTML = sections.map(section => `
+
+  // Pin all currently available favourites into one section above the normal rotation groups.
+  const favoriteMap = new Map();
+  for (const section of sections) {
+    for (const item of section.items || []) {
+      if (state.favorites.has(item.key)) favoriteMap.set(item.key, item);
+    }
+  }
+  const favoriteItems = [...favoriteMap.values()].sort((a, b) => a.name.localeCompare(b.name));
+  const favoriteKeys = new Set(favoriteItems.map(item => item.key));
+  const favoriteSection = favoriteItems.length ? `
+    <section class="section-block today-favorites-block">
+      <div class="section-block-header"><h3>★ 즐겨찾기 상품</h3><span>${favoriteItems.length}개 입고</span></div>
+      <div class="item-list">${favoriteItems.map(item => itemCard(item, 'today')).join('')}</div>
+    </section>` : '';
+
+  const regularSections = sections.map(section => ({
+    ...section,
+    items: (section.items || []).filter(item => !favoriteKeys.has(item.key))
+  })).filter(section => section.items.length > 0);
+  const regularMarkup = regularSections.map(section => `
     <section class="section-block">
       <div class="section-block-header"><h3>${escapeHtml(sectionLabel(section.title))}</h3><span>${section.items.length}개 상품</span></div>
       <div class="item-list">${section.items.map(item => itemCard(item, 'today')).join('')}</div>
     </section>`).join('');
+  $('#todaySections').innerHTML = favoriteSection + regularMarkup || '<div class="empty-state"><strong>현재 표시할 상품이 없어요.</strong></div>';
 }
 
 function renderStatus() {
@@ -272,6 +384,59 @@ async function enablePush() {
   }
 }
 
+function stopHistoryCatalogPolling() {
+  if (historyCatalogPollTimer) clearInterval(historyCatalogPollTimer);
+  historyCatalogPollTimer = null;
+}
+
+function startHistoryCatalogPolling(historyInfo) {
+  stopHistoryCatalogPolling();
+  if (!historyInfo?.apiKeyConfigured) return;
+  const needsFirstAttempt = !historyInfo.lastAttemptAt;
+  const needsMoreHistory = Number(historyInfo.pendingDays || 0) > 0;
+  if (!historyInfo.syncing && !needsFirstAttempt && !needsMoreHistory) return;
+  let attempts = 0;
+  historyCatalogPollTimer = setInterval(async () => {
+    attempts += 1;
+    try {
+      const result = await api('/api/catalog');
+      state.catalog = result.items || [];
+      $('#catalogNote').textContent = result.catalogNote || '';
+      renderCatalog();
+      const info = result.history || {};
+      const done = !info.syncing && Boolean(info.lastAttemptAt) && Number(info.pendingDays || 0) === 0;
+      const failed = !info.syncing && Boolean(info.lastError);
+      if (done || failed || attempts >= 90) {
+        stopHistoryCatalogPolling();
+        if (done) showToast(`역대 상품 ${state.catalog.length}개를 불러왔어요.`);
+        if (failed) showToast('일부 역대 판매 기록을 가져오지 못했어요. 서버 로그를 확인해 주세요.');
+      }
+    } catch (error) {
+      if (attempts >= 90) stopHistoryCatalogPolling();
+    }
+  }, 5000);
+}
+
+async function loadChampionAliases() {
+  try {
+    const response = await fetch('/champion-aliases-ko.json?v=1.3', { cache: 'force-cache' });
+    if (!response.ok) return;
+    const aliases = await response.json();
+    state.championAliases = Object.fromEntries(
+      Object.entries(aliases).map(([name, korean]) => [compactSearchText(name), korean])
+    );
+  } catch { /* English-name search remains available if alias data is offline. */ }
+}
+
+async function loadSkinAliases() {
+  try {
+    const response = await fetch('/skin-aliases-ko.json?v=1.3', { cache: 'force-cache' });
+    if (!response.ok) return;
+    const payload = await response.json();
+    state.skinAliases = payload.items || payload;
+  } catch { /* Champion-name and English-name search remain available. */ }
+}
+
 async function loadApp() {
   try {
     const stored = localStorage.getItem('msa-favorites');
@@ -280,7 +445,7 @@ async function loadApp() {
 
   try {
     const [shopResult, catalogResult, preferences] = await Promise.all([
-      api('/api/shop/today'), api('/api/catalog'), api(`/api/preferences/${encodeURIComponent(state.deviceId)}`)
+      api('/api/shop/today'), api('/api/catalog'), api(`/api/preferences/${encodeURIComponent(state.deviceId)}`), loadChampionAliases(), loadSkinAliases()
     ]);
     state.shop = shopResult.shop;
     state.catalog = catalogResult.items || [];
@@ -297,6 +462,7 @@ async function loadApp() {
     renderCatalog();
     renderToday();
     $('#catalogNote').textContent = catalogResult.catalogNote || '';
+    startHistoryCatalogPolling(catalogResult.history);
     if (state.shop.stale) showToast('현재 API가 이전 데이터를 반환하고 있어요.');
   } catch (error) {
     $('#catalogList').innerHTML = `<div class="empty-state"><strong>상점 데이터를 불러오지 못했어요.</strong>${escapeHtml(error.message)}<br>서버가 실행 중인지 확인하고 새로고침해 주세요.</div>`;
