@@ -1,15 +1,16 @@
 {
   "name": "mythic-shop-alert",
-  "version": "1.1.0",
+  "version": "1.5.2",
   "private": true,
-  "description": "League of Legends Mythic Shop catalog, historical rotation tracker and push notification PWA",
+  "description": "League of Legends Mythic Shop Master Pool with full Korean search aliases and user-triggered upstream shop refresh",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
     "vapid": "node scripts/generate-vapid.js",
     "sync:history": "node scripts/sync-history.js",
-    "check": "node --check server.js && node --check public/app.js && node --check public/sw.js && node --check scripts/sync-history.js && node --check lib/history-sync.js"
+    "check": "node --check server.js && node --check public/app.js && node --check public/sw.js && node --check scripts/sync-history.js && node --check scripts/generate-vapid.js && node --check scripts/import-master-pool.js && node --check lib/history-sync.js && node --check lib/master-pool.js && node --check lib/search-aliases.js && node --check scripts/verify-master-pool.js && node --check scripts/verify-search-aliases.js && node scripts/verify-master-pool.js && node scripts/verify-search-aliases.js && node -e \"JSON.parse(require('fs').readFileSync('data/master-pool-seed.json', 'utf8')); JSON.parse(require('fs').readFileSync('public/champion-aliases-ko.json', 'utf8')); JSON.parse(require('fs').readFileSync('public/skin-aliases-ko.json', 'utf8'))\"",
+    "import:master-pool": "node scripts/import-master-pool.js"
   },
   "engines": {
     "node": ">=20"

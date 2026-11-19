@@ -8,10 +8,10 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="신화 상점 알리미">
-  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="manifest" href="/manifest.webmanifest?v=1.5">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icon-192.png">
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/styles.css?v=1.5">
   <title>신화 상점 알리미</title>
 </head>
 <body>
@@ -29,7 +29,7 @@
         <div class="hero-copy">
           <div class="eyebrow"><span class="live-dot"></span> MYTHIC ESSENCE TRACKER</div>
           <h1 id="heroTitle">놓치고 싶지 않은<br><em>신화 정수 상품</em></h1>
-          <p>원하는 상품을 별표로 저장하면 로테이션 등장 시 알려드려요.</p>
+          <p>Master Pool에서 원하는 상품을 저장하고, 입고 알림을 켜고 끌 수 있어요.</p>
         </div>
         <div class="hero-art" aria-hidden="true"><span>✦</span><i>✧</i></div>
       </section>
@@ -42,8 +42,8 @@
       <section class="notification-panel" id="notificationPanel">
         <div class="notification-symbol">♢</div>
         <div class="notification-copy">
-          <strong id="notificationTitle">즐겨찾기 입고 알림 켜기</strong>
-          <span id="notificationDescription">원하는 상품이 로테이션에 등장하면 휴대폰으로 알려드려요.</span>
+          <strong id="notificationTitle">즐겨찾기 입고 알림 설정</strong>
+          <span id="notificationDescription">원하는 상품이 로테이션에 등장하면 휴대폰으로 알려드려요. 필요할 때 언제든 켜거나 끌 수 있어요.</span>
         </div>
         <button class="primary-button compact" id="enableNotifications" type="button">알림 켜기</button>
       </section>
@@ -58,9 +58,9 @@
           <div><p class="eyebrow">MY WISHLIST</p><h2>즐겨찾기 목록</h2></div>
           <span class="subtle-count" id="catalogCount">상품 불러오는 중</span>
         </div>
-        <p class="section-description">목록에서 ★를 눌러 관심 상품을 저장하세요. 별표가 켜진 상품은 로테이션 변경을 감시합니다.</p>
+        <p class="section-description">한국어 챔피언명·일부 한국어 스킨명 또는 영문 상품명으로 검색할 수 있어요. 목록에서 ★를 누르면 로테이션 입고 알림을 받을 수 있습니다.</p>
         <div class="search-row">
-          <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="상품명 또는 챔피언 검색" autocomplete="off"></label>
+          <label class="search-box"><span>⌕</span><input id="searchInput" type="search" placeholder="한국어 스킨명·챔피언명 또는 영문 상품명 검색" autocomplete="off"></label>
           <select id="categoryFilter" aria-label="상품 종류 필터">
             <option value="all">전체</option>
             <option value="skin">스킨</option>
@@ -99,6 +99,6 @@
     </main>
   </div>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="/app.js" defer></script>
+  <script src="/app.js?v=1.5.2" defer></script>
 </body>
 </html>

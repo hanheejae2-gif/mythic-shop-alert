@@ -8,11 +8,13 @@ const webpush = require('web-push');
 const path = require('path');
 const fs = require('fs');
 const { ensureHistoryTables, syncHistoryCatalog } = require('./lib/history-sync');
+const { ensureMasterPoolTable, upsertMasterPoolItem, migrateLegacyCatalogToMasterPool, importMasterPoolSeed, getMasterPoolStats } = require('./lib/master-pool');
+const { syncLocalizedSearchAliases } = require('./lib/search-aliases');
 
 const PORT = Number(process.env.PORT || 3000);
 const API_SHOP = 'https://itemshop.gg/api/v1/shop/league-of-legends';
 const API_ROTATIONS = 'https://itemshop.gg/api/v1/rotations';
-const PROJECT_UA = 'Mythic-Shop-Alert/1.1 (+self-hosted PWA)';
+const PROJECT_UA = 'Mythic-Shop-Alert/1.5.2 (+self-hosted PWA)';
 const ROOT = __dirname;
 const DB_PATH = path.resolve(ROOT, process.env.DATABASE_PATH || './data/mythic-shop.sqlite');
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
@@ -55,6 +57,7 @@ db.exec(`
   );
 `);
 ensureHistoryTables(db);
+ensureMasterPoolTable(db);
 
 const vapidPublic = process.env.VAPID_PUBLIC_KEY || '';
 const vapidPrivate = process.env.VAPID_PRIVATE_KEY || '';
@@ -70,6 +73,13 @@ if (vapidReady) {
 const app = express();
 app.disable('x-powered-by');
 app.use(express.json({ limit: '256kb' }));
+// API responses are live data. Never let a browser, service worker, or proxy reuse yesterday's shop.
+app.use('/api', (req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.set('Pragma', 'no-cache');
+  res.set('Expires', '0');
+  next();
+});
 app.use(express.static(path.join(ROOT, 'public'), { maxAge: process.env.NODE_ENV === 'production' ? '1h' : 0 }));
 
 const getState = db.prepare('SELECT value FROM app_state WHERE key = ?');
@@ -112,6 +122,40 @@ function bootstrapSeedIfEmpty() {
 function stateValue(key, fallback = null) {
   const row = getState.get(key);
   return row ? row.value : fallback;
+}
+
+let localizedSearchAliasSyncPromise = null;
+async function refreshLocalizedSearchAliases(reason = 'manual') {
+  if (localizedSearchAliasSyncPromise) return localizedSearchAliasSyncPromise;
+  localizedSearchAliasSyncPromise = (async () => {
+    try {
+      const payload = await syncLocalizedSearchAliases(db);
+      setState.run('localized_search_aliases_ko', JSON.stringify(payload));
+      setState.run('localized_search_aliases_error', '');
+      console.log(`[search-aliases] ${reason}: localized ${payload.localizedCount}/${payload.itemCount} items; CommunityDragon ${payload.communityDragonCount}; generated chroma aliases ${payload.generatedChromaCount}; unmatched ${payload.unmatchedCount}.`);
+      return payload;
+    } catch (error) {
+      setState.run('localized_search_aliases_error', error.message);
+      console.error(`[search-aliases] ${reason} failed:`, error.message);
+      const cached = stateValue('localized_search_aliases_ko');
+      if (cached) {
+        try { return JSON.parse(cached); } catch { /* keep the new error visible */ }
+      }
+      return null;
+    } finally {
+      localizedSearchAliasSyncPromise = null;
+    }
+  })();
+  return localizedSearchAliasSyncPromise;
+}
+
+function getLocalizedSearchAliases() {
+  try {
+    const raw = stateValue('localized_search_aliases_ko');
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
 }
 
 function kstDate(date = new Date()) {
@@ -256,16 +300,29 @@ async function sendFavoritesPush(newItems) {
   await Promise.all(jobs);
 }
 
-let syncInProgress = false;
-async function syncShop({ reason = 'poll', notify = true } = {}) {
-  if (syncInProgress) return { skipped: true, reason: 'sync already in progress' };
-  syncInProgress = true;
+const SHOP_REFRESH_MAX_AGE_MS = Math.max(60_000, Number(process.env.SHOP_REFRESH_MAX_AGE_MS || 5 * 60 * 1000));
+let activeShopSyncPromise = null;
+
+// One shared promise means concurrent page loads wait for the same refresh instead of
+// receiving the old DB snapshot while the startup refresh is still running.
+function syncShop(options = {}) {
+  if (activeShopSyncPromise) return activeShopSyncPromise;
+  activeShopSyncPromise = performShopSync(options).finally(() => { activeShopSyncPromise = null; });
+  return activeShopSyncPromise;
+}
+
+async function performShopSync({ reason = 'poll', notify = true } = {}) {
+  const attemptedAt = new Date().toISOString();
+  setState.run('shop_sync_attempted_at', attemptedAt);
+  setState.run('shop_sync_error', '');
   try {
     const apiPayload = await getJson(API_SHOP);
     const normalized = normalizeShop(apiPayload);
     if (normalized.stale) {
+      const message = 'itemshop.gg가 stale=true인 이전 데이터를 반환했습니다.';
+      setState.run('shop_sync_error', message);
       console.warn('[shop] API returned stale data; keeping previous snapshot.');
-      return { updated: false, stale: true };
+      return { updated: false, stale: true, error: message };
     }
 
     const previousRaw = stateValue('active_item_keys');
@@ -282,6 +339,7 @@ async function syncShop({ reason = 'poll', notify = true } = {}) {
 
     const transaction = db.transaction(() => {
       db.prepare('UPDATE catalog_items SET active = 0').run();
+      db.prepare('UPDATE master_pool_items SET active = 0').run();
       // A previously planned section must not remain marked as upcoming after it disappears.
       const priorRows = db.prepare('SELECT item_key, item_json FROM catalog_items').all();
       const updateItemJson = db.prepare('UPDATE catalog_items SET item_json = ? WHERE item_key = ?');
@@ -322,6 +380,14 @@ async function syncShop({ reason = 'poll', notify = true } = {}) {
           last_seen: now,
           active: isActive ? 1 : 0
         });
+        upsertMasterPoolItem(db, merged, {
+          eligibilityStatus: 'confirmed',
+          source: 'itemshop.gg-live-shop',
+          sourceNote: '현재 또는 예정 Mythic Shop API 응답에서 확인된 상품',
+          active: isActive,
+          observed: true,
+          now
+        });
       }
       db.prepare(`INSERT INTO current_shop(singleton, fetched_at, payload_json) VALUES(1, ?, ?)
         ON CONFLICT(singleton) DO UPDATE SET fetched_at = excluded.fetched_at, payload_json = excluded.payload_json`)
@@ -333,6 +399,7 @@ async function syncShop({ reason = 'poll', notify = true } = {}) {
       setState.run('active_item_keys', JSON.stringify(currentKeys));
       setState.run('last_shop_sync', now);
       setState.run('last_sync_reason', reason);
+      setState.run('shop_sync_error', '');
     });
     transaction();
 
@@ -342,18 +409,44 @@ async function syncShop({ reason = 'poll', notify = true } = {}) {
     console.log(`[shop] ${reason}: ${normalized.mythicItemCount} Mythic Shop entries, ${newlyAdded.length} newly rotated.`);
     return { updated: true, payload: normalized, newlyAdded: newlyAdded.length };
   } catch (error) {
+    setState.run('shop_sync_error', error.message);
     console.error(`[shop] ${reason} failed:`, error.message);
     return { updated: false, error: error.message };
-  } finally {
-    syncInProgress = false;
   }
 }
 
-async function pollRotations() {
+async function ensureShopFresh(reason = 'request', force = false) {
+  const current = db.prepare('SELECT fetched_at FROM current_shop WHERE singleton = 1').get();
+  const lastSuccess = stateValue('last_shop_sync') || current?.fetched_at || null;
+  const lastTime = lastSuccess ? Date.parse(lastSuccess) : 0;
+  const ageMs = lastTime ? Date.now() - lastTime : Infinity;
+  const needsTodaySnapshot = !lastSuccess || kstDate(new Date(lastSuccess)) !== kstDate();
+  if (force) {
+    // A deliberate user refresh always requests a new upstream shop snapshot.
+    // Concurrent requests still share activeShopSyncPromise, preventing duplicate calls.
+    setState.run('shop_manual_refresh_at', new Date().toISOString());
+  }
+  const needsRefresh = force || !current || needsTodaySnapshot || ageMs >= SHOP_REFRESH_MAX_AGE_MS;
+  if (!needsRefresh) return { skipped: true, reason: 'snapshot is fresh', ageMs };
+  return syncShop({ reason, notify: Boolean(current) });
+}
+
+let activeRotationPollPromise = null;
+function pollRotations() {
+  if (activeRotationPollPromise) return activeRotationPollPromise;
+  activeRotationPollPromise = performRotationPoll().finally(() => { activeRotationPollPromise = null; });
+  return activeRotationPollPromise;
+}
+
+async function performRotationPoll() {
+  const attemptedAt = new Date().toISOString();
+  setState.run('rotation_check_attempted_at', attemptedAt);
   try {
     const payload = await getJson(API_ROTATIONS);
     const league = payload.data?.['league-of-legends'];
-    if (!league?.fingerprint) return;
+    if (!league?.fingerprint) throw new Error('rotations 응답에서 League of Legends fingerprint를 찾지 못했습니다.');
+    setState.run('rotation_check_error', '');
+    setState.run('rotation_checked_at', new Date().toISOString());
     const oldFingerprint = stateValue('rotation_fingerprint');
     if (oldFingerprint !== league.fingerprint) {
       const result = await syncShop({ reason: 'rotation-change', notify: true });
@@ -362,9 +455,13 @@ async function pollRotations() {
         // Keep the long-term catalog close to real rotation changes, not just a daily batch.
         if (process.env.ITEMSHOP_API_KEY) void runHistoryCatalogSync('rotation-change');
       }
+      return result;
     }
+    return { updated: false, unchanged: true };
   } catch (error) {
+    setState.run('rotation_check_error', error.message);
     console.error('[rotations] poll failed:', error.message);
+    return { updated: false, error: error.message };
   }
 }
 
@@ -373,12 +470,20 @@ async function runHistoryCatalogSync(reason = 'scheduled') {
   if (!process.env.ITEMSHOP_API_KEY) return { skipped: true, reason: 'ITEMSHOP_API_KEY is not configured' };
   if (historySyncInProgress) return { skipped: true, reason: 'history sync already in progress' };
   historySyncInProgress = true;
+  const startedAt = new Date().toISOString();
+  setState.run('history_catalog_syncing', '1');
+  setState.run('history_catalog_attempted_at', startedAt);
+  setState.run('history_catalog_error', '');
   try {
     const result = await syncHistoryCatalog(db, { apiKey: process.env.ITEMSHOP_API_KEY, delayMs: 200 });
     if (!result.skipped) {
       setState.run('history_catalog_synced_at', result.syncedAt);
-      setState.run('history_catalog_error', '');
-      console.log(`[history] ${reason}: imported ${result.newlyImportedDays} new days; catalog has ${result.catalogItems} items.`);
+      setState.run('history_available_days', String(result.availableHistoryDays));
+      setState.run('history_pending_days', String(result.pendingDays));
+      setState.run('history_catalog_error', result.errors?.length
+        ? `${result.errors.length}개 날짜 수집 실패: ${result.errors.slice(0, 3).map(entry => `${entry.date} ${entry.message}`).join(' / ')}`
+        : '');
+      console.log(`[history] ${reason}: imported ${result.newlyImportedDays} new days; pending ${result.pendingDays}; catalog has ${result.catalogItems} items.`);
     }
     return result;
   } catch (error) {
@@ -386,6 +491,7 @@ async function runHistoryCatalogSync(reason = 'scheduled') {
     console.error(`[history] ${reason} failed:`, error.message);
     return { skipped: false, error: error.message };
   } finally {
+    setState.run('history_catalog_syncing', '0');
     historySyncInProgress = false;
   }
 }
@@ -405,44 +511,149 @@ app.get('/api/config', (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-  const shop = db.prepare('SELECT fetched_at FROM current_shop WHERE singleton = 1').get();
-  res.json({ ok: true, shopFetchedAt: shop?.fetched_at || null, serverTime: new Date().toISOString(), timezone: 'Asia/Seoul' });
+  const row = db.prepare('SELECT fetched_at, payload_json FROM current_shop WHERE singleton = 1').get();
+  let snapshot = null;
+  try { snapshot = row ? JSON.parse(row.payload_json) : null; } catch { /* report timestamps even if old JSON is malformed */ }
+  const lastShopSync = stateValue('last_shop_sync') || row?.fetched_at || null;
+  const lastShopSyncAgeMs = lastShopSync ? Math.max(0, Date.now() - Date.parse(lastShopSync)) : null;
+  res.json({
+    ok: true,
+    serverTime: new Date().toISOString(),
+    timezone: 'Asia/Seoul',
+    shopFetchedAt: row?.fetched_at || null,
+    shopDate: snapshot?.shopDate || null,
+    shopApiUpdatedAt: snapshot?.updatedAt || null,
+    shopLocalDate: snapshot?.localDate || null,
+    lastShopSync,
+    lastShopSyncAgeMs,
+    shopSyncAttemptedAt: stateValue('shop_sync_attempted_at'),
+    shopSyncError: stateValue('shop_sync_error'),
+    lastSyncReason: stateValue('last_sync_reason'),
+    rotationCheckedAt: stateValue('rotation_checked_at'),
+    rotationCheckAttemptedAt: stateValue('rotation_check_attempted_at'),
+    rotationCheckError: stateValue('rotation_check_error'),
+    refreshMaxAgeMs: SHOP_REFRESH_MAX_AGE_MS,
+    localizedSearchAliasesUpdatedAt: getLocalizedSearchAliases()?.updatedAt || null,
+    localizedSearchAliasCount: getLocalizedSearchAliases()?.localizedCount || 0,
+    localizedSearchAliasItemCount: getLocalizedSearchAliases()?.itemCount || 0,
+    localizedSearchAliasUnmatchedCount: getLocalizedSearchAliases()?.unmatchedCount || 0,
+    localizedSearchAliasesError: stateValue('localized_search_aliases_error'),
+    historySyncing: stateValue('history_catalog_syncing', '0') === '1',
+    historyError: stateValue('history_catalog_error')
+  });
 });
 
-app.get('/api/shop/today', (req, res) => {
+app.get('/api/shop/today', async (req, res) => {
+  const force = req.query.force === '1';
+  // For a manual refresh, skip the preliminary fingerprint request and call the
+  // shop API directly so one button press produces one fresh shop API request.
+  if (!force) {
+    const lastRotationCheck = Date.parse(stateValue('rotation_checked_at') || '') || 0;
+    if (Date.now() - lastRotationCheck >= 60_000) await pollRotations();
+  }
+  const refresh = await ensureShopFresh(force ? 'manual-refresh' : 'request-freshness-check', force);
   const row = db.prepare('SELECT fetched_at, payload_json FROM current_shop WHERE singleton = 1').get();
-  if (!row) return res.status(503).json({ error: '아직 상점 데이터를 받지 못했습니다. 잠시 후 다시 시도해 주세요.' });
-  res.json({ fetchedAt: row.fetched_at, shop: JSON.parse(row.payload_json) });
+  if (!row) return res.status(503).json({ error: '상점 데이터를 가져오지 못했습니다.', refresh, detail: stateValue('shop_sync_error') });
+  const shop = JSON.parse(row.payload_json);
+  if (refresh?.error || refresh?.stale) shop.stale = true;
+  res.json({ fetchedAt: row.fetched_at, shop, refresh: { updated: Boolean(refresh?.updated), stale: Boolean(refresh?.stale), error: refresh?.error || null } });
 });
 
 app.get('/api/catalog', (req, res) => {
-  const rows = db.prepare("SELECT item_json, active, first_seen, last_seen FROM catalog_items ORDER BY json_extract(item_json, '$.name') COLLATE NOCASE").all();
-  const items = rows.map(row => ({ ...JSON.parse(row.item_json), active: Boolean(row.active), firstSeen: row.first_seen, lastSeen: row.last_seen }));
+  const rows = db.prepare("SELECT item_json, active, eligibility_status, source, source_note, created_at, updated_at, last_observed_at FROM master_pool_items ORDER BY json_extract(item_json, '$.name') COLLATE NOCASE").all();
+  const items = rows.map(row => {
+    const item = JSON.parse(row.item_json);
+    return {
+      ...item,
+      active: Boolean(row.active),
+      firstSeen: item.firstSeen || row.created_at,
+      lastSeen: item.lastSeen || row.last_observed_at || row.updated_at,
+      masterPool: {
+        ...(item.masterPool || {}),
+        eligibilityStatus: row.eligibility_status,
+        source: row.source,
+        sourceNote: row.source_note,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        lastObservedAt: row.last_observed_at
+      }
+    };
+  });
+  const masterPoolStats = getMasterPoolStats(db);
   const historyStats = db.prepare(`SELECT COUNT(*) AS dayCount, MIN(shop_date) AS fromDate, MAX(shop_date) AS toDate FROM history_days`).get();
-  const note = historyStats.dayCount > 0
-    ? `itemshop.gg가 기록한 ${historyStats.dayCount}개 상점 변경일(${historyStats.fromDate} ~ ${historyStats.toDate})의 신화 상점 상품을 합친 목록입니다. 현재 판매/판매 예정 상품도 포함합니다. 기록 시작 이전의 역대 상품은 포함되지 않을 수 있습니다.`
-    : (process.env.ITEMSHOP_API_KEY
-      ? '과거 상점 이력 동기화를 준비 중입니다. 잠시 후 새로고침하거나 서버 로그를 확인해 주세요.'
-      : '현재 판매 및 판매 예정 상품만 수집된 상태입니다. 과거 전체 기록을 추가하려면 서버에 ITEMSHOP_API_KEY를 설정하고 history 동기화를 실행하세요.');
+  const apiKeyConfigured = Boolean(process.env.ITEMSHOP_API_KEY);
+  let seedImport = null;
+  try { seedImport = JSON.parse(stateValue('master_pool_seed_import', 'null')); } catch { seedImport = null; }
+  const availableDays = Number(stateValue('history_available_days', '0')) || 0;
+  const pendingDays = Math.max(0, availableDays - historyStats.dayCount);
+  const isSyncing = stateValue('history_catalog_syncing', '0') === '1';
+  const lastError = stateValue('history_catalog_error');
+  const noteParts = [
+    `Master Pool ${masterPoolStats.total}개 상품: 실제 상점에서 확인된 상품 ${masterPoolStats.confirmed}개, 판매 후보(이력 미확인) ${masterPoolStats.candidate}개입니다.`,
+    seedImport ? `v1.5 데이터 병합 결과: 이번 seed에 포함된 ${seedImport.imported}개 중 기존 DB와 중복되지 않아 새로 추가된 항목 ${seedImport.inserted}개, 기존에 있어 병합된 항목 ${seedImport.alreadyPresent}개입니다.` : '',
+    historyStats.dayCount > 0
+      ? `itemshop.gg가 기록한 ${historyStats.dayCount}개 상점 변경일(${historyStats.fromDate} ~ ${historyStats.toDate})의 이력을 반영했습니다.`
+      : (apiKeyConfigured ? (isSyncing ? '과거 상점 기록을 가져오는 중입니다.' : '과거 상점 이력 동기화를 준비 중입니다.') : 'ITEMSHOP_API_KEY가 없으면 과거 이력은 자동 수집되지 않습니다.'),
+    pendingDays > 0 ? `아직 ${pendingDays}개 기록일을 가져오는 중입니다.` : '',
+    'API 기록 시작일 이전의 상품은 별도 후보 데이터로 보완해야 하며, 모든 역대 상품이 완전하게 확보됐다는 뜻은 아닙니다.'
+  ].filter(Boolean);
+  const note = noteParts.join(' ');
   res.json({
     items,
     count: items.length,
+    masterPool: masterPoolStats,
+    seedImport,
     history: {
-      apiKeyConfigured: Boolean(process.env.ITEMSHOP_API_KEY),
+      apiKeyConfigured,
+      syncing: isSyncing,
+      availableDays,
+      pendingDays,
       importedDays: historyStats.dayCount,
       fromDate: historyStats.fromDate,
       throughDate: historyStats.toDate,
+      lastAttemptAt: stateValue('history_catalog_attempted_at'),
       lastSyncedAt: stateValue('history_catalog_synced_at'),
-      lastError: stateValue('history_catalog_error')
+      lastError
     },
     catalogNote: note
+  });
+});
+
+app.get('/api/search-aliases', async (req, res) => {
+  let payload = getLocalizedSearchAliases();
+  const currentItemCount = Number(db.prepare('SELECT COUNT(*) AS count FROM master_pool_items').get()?.count || 0);
+  if (!payload || Number(payload.itemCount || 0) !== currentItemCount) {
+    payload = await refreshLocalizedSearchAliases('first-request-or-master-pool-changed');
+  } else {
+    const updatedAt = Date.parse(payload.updatedAt || '') || 0;
+    if (Date.now() - updatedAt > 24 * 60 * 60 * 1000) void refreshLocalizedSearchAliases('stale-search-alias-cache');
+  }
+  if (!payload) {
+    return res.json({
+      schemaVersion: 1, locale: 'ko_KR', aliases: {}, localizedCount: 0,
+      itemCount: 0, error: stateValue('localized_search_aliases_error') || '한국어 검색 사전을 아직 준비하지 못했습니다.'
+    });
+  }
+  res.json({
+    schemaVersion: payload.schemaVersion,
+    locale: payload.locale,
+    source: payload.source,
+    updatedAt: payload.updatedAt,
+    itemCount: payload.itemCount,
+    localizedCount: payload.localizedCount,
+    communityDragonCount: payload.communityDragonCount,
+    generatedChromaCount: payload.generatedChromaCount,
+    unmatchedCount: payload.unmatchedCount,
+    aliases: payload.aliases,
+    error: stateValue('localized_search_aliases_error') || null
   });
 });
 
 app.get('/api/preferences/:deviceId', (req, res) => {
   if (!validDeviceId(req.params.deviceId)) return res.status(400).json({ error: '잘못된 기기 식별자입니다.' });
   const row = db.prepare('SELECT favorites_json FROM devices WHERE device_id = ?').get(req.params.deviceId);
-  res.json({ favorites: row ? JSON.parse(row.favorites_json) : [], hasPreferences: Boolean(row) });
+  const push = db.prepare('SELECT device_id FROM push_subscriptions WHERE device_id = ?').get(req.params.deviceId);
+  res.json({ favorites: row ? JSON.parse(row.favorites_json) : [], hasPreferences: Boolean(row), pushEnabled: Boolean(push) });
 });
 
 app.put('/api/preferences/:deviceId', (req, res) => {
@@ -478,7 +689,7 @@ app.post('/api/push/subscribe', (req, res) => {
 app.delete('/api/push/subscribe/:deviceId', (req, res) => {
   if (!validDeviceId(req.params.deviceId)) return res.status(400).json({ error: '잘못된 기기 식별자입니다.' });
   db.prepare('DELETE FROM push_subscriptions WHERE device_id = ?').run(req.params.deviceId);
-  res.json({ ok: true });
+  res.json({ ok: true, pushEnabled: false });
 });
 
 app.post('/api/push/test', async (req, res) => {
@@ -508,29 +719,58 @@ app.use((error, req, res, next) => {
 });
 
 bootstrapSeedIfEmpty();
+const migratedMasterItems = migrateLegacyCatalogToMasterPool(db);
+const seededMasterItems = importMasterPoolSeed(db);
+// Keep the first import's reconciliation result so it remains visible after later restarts.
+if (seededMasterItems.inserted > 0 || !stateValue('master_pool_seed_import')) {
+  setState.run('master_pool_seed_import', JSON.stringify({
+    ...seededMasterItems,
+    capturedDataset: 'itemshop.gg Mythic rarity / SKIN catalogue, 2026-11-18',
+    importedAt: new Date().toISOString()
+  }));
+}
+console.log(`[master-pool] ready: migrated ${migratedMasterItems} legacy entries; seed processed ${seededMasterItems.imported} entries (${seededMasterItems.inserted} new, ${seededMasterItems.alreadyPresent} already present).`);
 
-const server = app.listen(PORT, async () => {
+const server = app.listen(PORT, () => {
   console.log(`Mythic Shop Alert listening on http://localhost:${PORT}`);
-  // One initial fetch establishes the first baseline without sending a push.
-  const existing = db.prepare('SELECT singleton FROM current_shop WHERE singleton = 1').get();
-  const result = await syncShop({ reason: 'startup', notify: Boolean(existing) });
-  if (result.updated) {
-    try {
-      const rotations = await getJson(API_ROTATIONS);
-      const fingerprint = rotations.data?.['league-of-legends']?.fingerprint;
-      if (fingerprint) setState.run('rotation_fingerprint', fingerprint);
-    } catch (error) { console.error('[rotations] initial read failed:', error.message); }
-  }
-  // itemshop.gg recommends checking rotations once a minute; fetch the full shop only on fingerprint changes.
-  setInterval(pollRotations, 60 * 1000).unref();
-  // Keep a daily KST snapshot at 00:05, even when there was no rotation that day.
-  cron.schedule('5 0 * * *', () => syncShop({ reason: 'daily-kst-snapshot', notify: true }), { timezone: 'Asia/Seoul' });
+
+  // itemshop.gg has no fixed LoL shop reset. Poll the rotation fingerprint every minute.
+  setInterval(() => { void pollRotations(); }, 60 * 1000).unref();
+
+  // Safety net: retry every five minutes when the API request failed, the app missed
+  // midnight, or the latest successful snapshot is too old. The request route above
+  // provides the same recovery when a sleeping instance is first opened.
+  cron.schedule('*/5 * * * *', () => { void ensureShopFresh('scheduled-freshness-retry'); }, { timezone: 'Asia/Seoul' });
+
+  // Refresh the Korean names for every Master Pool item once per day.
+  // The localized data is cached in SQLite; page views do not download these files.
+  setTimeout(() => { void refreshLocalizedSearchAliases('startup'); }, 1800).unref();
+  cron.schedule('10 4 * * *', () => { void refreshLocalizedSearchAliases('daily-localization-refresh'); }, { timezone: 'Asia/Seoul' });
 
   // Import any newly recorded historical rotations at startup and once daily.
   if (process.env.ITEMSHOP_API_KEY) {
     setTimeout(() => runHistoryCatalogSync('startup-backfill'), 2500).unref();
     cron.schedule('20 0 * * *', () => runHistoryCatalogSync('daily-history-backfill'), { timezone: 'Asia/Seoul' });
   }
+
+  // Initial snapshot is fetched in the background, while the HTTP route can await it
+  // through the shared sync promise if a user opens the app during startup.
+  void (async () => {
+    const existing = db.prepare('SELECT singleton FROM current_shop WHERE singleton = 1').get();
+    const result = await syncShop({ reason: 'startup', notify: Boolean(existing) });
+    if (result.updated) {
+      try {
+        const rotations = await getJson(API_ROTATIONS);
+        const fingerprint = rotations.data?.['league-of-legends']?.fingerprint;
+        if (fingerprint) setState.run('rotation_fingerprint', fingerprint);
+        setState.run('rotation_checked_at', new Date().toISOString());
+        setState.run('rotation_check_error', '');
+      } catch (error) {
+        setState.run('rotation_check_error', error.message);
+        console.error('[rotations] initial read failed:', error.message);
+      }
+    }
+  })();
 });
 
 function shutdown() {

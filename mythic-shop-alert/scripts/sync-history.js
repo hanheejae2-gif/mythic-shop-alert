@@ -22,6 +22,11 @@ syncHistoryCatalog(db)
     console.log(`이번 처리 상품 항목: ${result.itemEntriesProcessed}개`);
     console.log(`누적 카탈로그 상품: ${result.catalogItems}개`);
     console.log(`기록 범위: ${result.historyFrom || '?'} ~ ${result.historyThrough || '?'}`);
+    console.log(`미수집 기록일: ${result.pendingDays}`);
+    if (result.errors?.length) {
+      console.error(`실패한 날짜 ${result.errors.length}개:`, result.errors);
+      process.exitCode = 1;
+    }
   })
   .catch(error => {
     console.error('역사 카탈로그 동기화 실패:', error.message);
