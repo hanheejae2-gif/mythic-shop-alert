@@ -1,15 +1,15 @@
 {
   "name": "mythic-shop-alert",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "private": true,
-  "description": "League of Legends Mythic Shop Master Pool with full Korean search aliases and user-triggered upstream shop refresh",
+  "description": "League of Legends Mythic Shop Master Pool with Mythic skin and summoner icon discovery, Korean search aliases, and user-triggered upstream shop refresh",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
     "vapid": "node scripts/generate-vapid.js",
     "sync:history": "node scripts/sync-history.js",
-    "check": "node --check server.js && node --check public/app.js && node --check public/sw.js && node --check scripts/sync-history.js && node --check scripts/generate-vapid.js && node --check scripts/import-master-pool.js && node --check lib/history-sync.js && node --check lib/master-pool.js && node --check lib/search-aliases.js && node --check scripts/verify-master-pool.js && node --check scripts/verify-search-aliases.js && node scripts/verify-master-pool.js && node scripts/verify-search-aliases.js && node -e \"JSON.parse(require('fs').readFileSync('data/master-pool-seed.json', 'utf8')); JSON.parse(require('fs').readFileSync('public/champion-aliases-ko.json', 'utf8')); JSON.parse(require('fs').readFileSync('public/skin-aliases-ko.json', 'utf8'))\"",
+    "check": "node --check server.js && node --check public/app.js && node --check public/sw.js && node --check scripts/sync-history.js && node --check scripts/generate-vapid.js && node --check scripts/import-master-pool.js && node --check lib/history-sync.js && node --check lib/master-pool.js && node --check lib/search-aliases.js && node --check lib/shop-normalize.js && node --check lib/icon-pool-sync.js && node --check scripts/verify-master-pool.js && node --check scripts/verify-search-aliases.js && node --check scripts/verify-icon-pool.js && node --check scripts/verify-shop-normalize.js && node scripts/verify-master-pool.js && node scripts/verify-search-aliases.js && node scripts/verify-icon-pool.js && node scripts/verify-shop-normalize.js && node -e \"JSON.parse(require('fs').readFileSync('data/master-pool-seed.json', 'utf8')); JSON.parse(require('fs').readFileSync('public/champion-aliases-ko.json', 'utf8')); JSON.parse(require('fs').readFileSync('public/skin-aliases-ko.json', 'utf8'))\"",
     "import:master-pool": "node scripts/import-master-pool.js"
   },
   "engines": {

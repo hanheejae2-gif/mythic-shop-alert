@@ -1,4 +1,4 @@
-# 신화 상점 알리미 v1.5.2
+# 신화 상점 알리미 v1.5.3
 
 리그 오브 레전드 신화 정수 상점의 상품을 장기 보관하는 **Master Pool**과 현재 상점 로테이션을 비교해, 즐겨찾기 상품이 다시 등장하면 기기별 웹 푸시 알림을 보내는 모바일 우선 PWA입니다.
 
@@ -64,6 +64,41 @@
 - `/api/health`의 `localizedSearchAliasesUpdatedAt`, `localizedSearchAliasCount`, `localizedSearchAliasItemCount`, `localizedSearchAliasUnmatchedCount`, `localizedSearchAliasesError`: 한국어 검색 사전 생성 상태 확인
 - `GET /api/shop/today?force=1`: 외부 상점 API 강제 재조회
 
+## v1.5.3 신화급 소환사 아이콘 자동 수집 및 갱신 시각 개선
+
+### 1. Mythic 소환사 아이콘 자동 수집
+
+- 서버 시작 시와 매일 04:00 KST에 CommunityDragon의 한국어 `summoner-icons.json`을 확인합니다.
+- `rarities` 배열에서 `region: "riot"` 및 `rarity: 4`인 아이콘을 Mythic 희귀도 후보로 분류합니다. DJ 소나 얼티밋 리믹스 아이콘 ID `7350`, `7352`가 이 분류에 포함되는 것을 확인했습니다.
+- 아이콘은 `lol:item:icon:{iconId}` 키로 Master Pool에 병합합니다. 동일 ID는 중복 추가하지 않습니다.
+- 신규 아이콘은 실제 상점 판매가 확인되기 전까지 `candidate` 상태로 등록합니다. 실제 상점 API 또는 과거 판매 이력에서 관측되면 기존 로직으로 `confirmed` 처리됩니다.
+- 아이콘 이미지와 한국어 이름은 CommunityDragon 원본 데이터를 사용합니다. 아이콘 수집 후 한국어 검색 별칭을 다시 생성합니다.
+- 이 방식은 개별 아이콘 이름을 코드에 하드코딩하지 않으며, CommunityDragon에 신규 Mythic 아이콘이 추가되면 다음 수집 주기에 반영합니다.
+- 기존 DB의 확인 상품 상태, 가격, 이미지, 판매 이력은 후보 데이터 재수집으로 초기화되지 않도록 병합합니다.
+
+참고: CommunityDragon의 Mythic 희귀도 후보는 실제 Mythic Shop 판매 이력을 뜻하지 않습니다. 실제 판매 관측 전까지는 후보로 표시합니다. CommunityDragon의 현재 데이터에서 Riot rarity `4`에 해당하는 아이콘은 수집 시점 기준 219개였으며, 이 수량은 원본 데이터 변경에 따라 달라질 수 있습니다.
+
+### 2. 오늘의 상점 아이콘 정규화
+
+- 상점 정규화 로직을 `lib/shop-normalize.js`로 분리해 테스트할 수 있도록 구성했습니다.
+- 기존 `Mythic Shop:` 섹션 필터를 유지하면서 해당 섹션 안의 스킨과 소환사 아이콘을 동일한 방식으로 정규화합니다.
+- 아이콘의 `id`, `itemKey`, 이름, 유형, 가격, 이미지, 판매 가능 기간을 보존합니다.
+- 예정 섹션의 아이콘은 `catalogItems`에 포함하고, 현재 판매 섹션의 아이콘은 `items`에 포함합니다.
+- upstream API 원본에 존재하지 않는 아이콘은 합성하지 않습니다. 원본 API에 포함된 상품만 정규화합니다.
+
+### 3. API 수집 시각 표시
+
+- 서버가 상점 API 응답을 성공적으로 받아 DB에 저장한 시각을 `lastFetchedAt`으로 별도 보관합니다.
+- `/api/shop/today` 응답에 최상위 `lastFetchedAt`과 `shop.lastFetchedAt`을 제공합니다.
+- 원본 공급자의 `shop.updatedAt`과 `meta.generatedAt`은 기존 의미를 유지합니다.
+- 화면의 `API 확인` 시각은 `lastFetchedAt`을 사용합니다. 기존 스냅샷은 DB의 `fetched_at`으로 호환 처리합니다.
+
+### 4. 상태 확인
+
+- `/api/catalog`의 `masterPool.icons`는 Master Pool에 등록된 소환사 아이콘 수입니다.
+- `/api/health`에는 `mythicIconPoolSyncAt`, `mythicIconPoolCandidateCount`, `mythicIconPoolSyncError`가 추가됩니다.
+- `npm run check`는 아이콘 희귀도 판별, 안정적 키, 기존 판매 이력 보존, 혼합 스킨/아이콘 상점 정규화 및 갱신 시각 구조를 검사합니다.
+
 ## v1.5 데이터 파일
 
 | 파일 | 내용 |
@@ -124,7 +159,7 @@ npm run import:master-pool
 
 ## Render 기존 서비스 업데이트 방법
 
-기존 Render 서비스를 유지하면서 GitHub 저장소의 프로젝트 파일만 v1.5.2로 교체합니다.
+기존 Render 서비스를 유지하면서 GitHub 저장소의 프로젝트 파일만 v1.5.3으로 교체합니다.
 
 1. ZIP을 압축 해제합니다.
 2. 압축 안의 `mythic-shop-alert` 폴더를 엽니다. 이 안에 `package.json`이 있습니다. 첫 화면은 상점과 상품 목록을 먼저 표시하고, 큰 한국어 별칭 사전은 백그라운드에서 불러옵니다.

@@ -47,13 +47,38 @@ function upsertMasterPoolItem(db, item, options = {}) {
   const active = options.active === undefined ? (prior ? prior.active : Number(Boolean(item.active))) : Number(Boolean(options.active));
   const observedAt = options.observedAt || (options.observed ? now : prior?.last_observed_at || null);
 
+  const oldHistory = Array.isArray(old.salesHistory) ? old.salesHistory : [];
+  const incomingHistory = Array.isArray(item.salesHistory) ? item.salesHistory : [];
+  const historyByPeriod = new Map(oldHistory.map(entry => [entry.periodKey || JSON.stringify(entry), entry]));
+  for (const entry of incomingHistory) {
+    const periodKey = entry.periodKey || JSON.stringify(entry);
+    historyByPeriod.set(periodKey, { ...(historyByPeriod.get(periodKey) || {}), ...entry });
+  }
+  const salesHistory = [...historyByPeriod.values()];
+  const incomingImages = item.images && typeof item.images === 'object' ? item.images : {};
+  const oldImages = old.images && typeof old.images === 'object' ? old.images : {};
+  const preserveConfirmedFields = oldStatus === 'confirmed' && requestedStatus === 'candidate';
+
   const merged = {
     ...old,
     ...item,
     key: itemKey,
     itemKey: item.itemKey || old.itemKey || (itemKey.startsWith('lol:') ? itemKey : null),
-    salesHistory: Array.isArray(item.salesHistory) ? item.salesHistory : (Array.isArray(old.salesHistory) ? old.salesHistory : []),
-    historyCount: Array.isArray(item.salesHistory) ? item.salesHistory.length : (old.historyCount || 0),
+    name: preserveConfirmedFields ? (old.name || item.name) : (item.name || old.name),
+    type: preserveConfirmedFields ? (old.type || item.type) : (item.type || old.type),
+    rarity: item.rarity ?? old.rarity ?? null,
+    price: item.price ?? old.price ?? null,
+    images: {
+      card: incomingImages.card || oldImages.card || null,
+      render: incomingImages.render || oldImages.render || null
+    },
+    availability: item.availability && (item.availability.from || item.availability.until)
+      ? item.availability
+      : (old.availability || item.availability || { from: null, until: null }),
+    salesHistory,
+    historyCount: salesHistory.length,
+    firstSeenDate: item.firstSeenDate || old.firstSeenDate || null,
+    lastSeenDate: item.lastSeenDate || old.lastSeenDate || null,
     active: Boolean(active),
     masterPool: {
       ...(old.masterPool || {}),
@@ -169,7 +194,8 @@ function getMasterPoolStats(db) {
   const confirmed = db.prepare("SELECT COUNT(*) AS count FROM master_pool_items WHERE eligibility_status = 'confirmed'").get().count;
   const candidate = db.prepare("SELECT COUNT(*) AS count FROM master_pool_items WHERE eligibility_status = 'candidate'").get().count;
   const active = db.prepare('SELECT COUNT(*) AS count FROM master_pool_items WHERE active = 1').get().count;
-  return { total, confirmed, candidate, active };
+  const icons = db.prepare("SELECT COUNT(*) AS count FROM master_pool_items WHERE json_extract(item_json, '$.id') LIKE 'item:icon:%'").get().count;
+  return { total, confirmed, candidate, active, icons };
 }
 
 module.exports = {

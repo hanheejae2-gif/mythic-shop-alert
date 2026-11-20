@@ -167,7 +167,7 @@ function parseCommunityDragonJson(raw) {
 async function fetchLocalizedData(fetchImpl = fetch) {
   const entries = await Promise.all(Object.entries(CDRAGON_FILES).map(async ([kind, filename]) => {
     const response = await fetchImpl(`${CDRAGON_BASE}${filename}`, {
-      headers: { Accept: 'application/json', 'User-Agent': 'Mythic-Shop-Alert/1.5.2' },
+      headers: { Accept: 'application/json', 'User-Agent': 'Mythic-Shop-Alert/1.5.3' },
       signal: AbortSignal.timeout(45_000)
     });
     if (!response.ok) throw new Error(`CommunityDragon ${filename} HTTP ${response.status}`);

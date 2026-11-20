@@ -282,7 +282,7 @@ function renderStatus() {
   $('#todayDate').textContent = state.shop.localDate || '오늘';
   $('#shopStatus').textContent = state.shop.stale ? '이전 데이터' : '최신 데이터';
   $('#shopStatus').classList.toggle('warn', Boolean(state.shop.stale));
-  $('#lastUpdated').textContent = `API 갱신 ${formatDateTime(state.shop.updatedAt || state.shop.fetchedAt)}`;
+  $('#lastUpdated').textContent = `API 확인 ${formatDateTime(state.shop.lastFetchedAt)}`;
 }
 
 function setTab(tab) {
@@ -496,7 +496,10 @@ async function refreshShopView({ notify = false, force = false } = {}) {
     } catch (aliasError) {
       console.warn('[search-aliases] refresh after shop sync failed:', aliasError.message);
     }
-    state.shop = shopResult.shop;
+    state.shop = {
+      ...shopResult.shop,
+      lastFetchedAt: shopResult.lastFetchedAt || shopResult.fetchedAt || shopResult.shop.lastFetchedAt || null
+    };
     state.catalog = catalogResult.items || state.catalog;
     renderStatus();
     renderCatalog();
@@ -543,7 +546,7 @@ window.addEventListener('focus', resumeShopRefresh);
 
 async function loadChampionAliases() {
   try {
-    const response = await fetch('/champion-aliases-ko.json?v=1.5.2', { cache: 'force-cache' });
+    const response = await fetch('/champion-aliases-ko.json?v=1.5.3', { cache: 'force-cache' });
     if (!response.ok) return;
     const aliases = await response.json();
     state.championAliases = Object.fromEntries(
@@ -554,7 +557,7 @@ async function loadChampionAliases() {
 
 async function loadSkinAliases() {
   try {
-    const response = await fetch('/skin-aliases-ko.json?v=1.5.2', { cache: 'force-cache' });
+    const response = await fetch('/skin-aliases-ko.json?v=1.5.3', { cache: 'force-cache' });
     if (response.ok) {
       const payload = await response.json();
       state.skinAliases = payload.items || payload;
@@ -579,7 +582,10 @@ async function loadApp() {
     const [shopResult, catalogResult, preferences] = await Promise.all([
       api('/api/shop/today'), api('/api/catalog'), api(`/api/preferences/${encodeURIComponent(state.deviceId)}`), loadChampionAliases()
     ]);
-    state.shop = shopResult.shop;
+    state.shop = {
+      ...shopResult.shop,
+      lastFetchedAt: shopResult.lastFetchedAt || shopResult.fetchedAt || shopResult.shop.lastFetchedAt || null
+    };
     state.catalog = catalogResult.items || [];
     state.pushEnabled = Boolean(preferences.pushEnabled);
     // The server copy is the source of truth after this device has synced preferences.

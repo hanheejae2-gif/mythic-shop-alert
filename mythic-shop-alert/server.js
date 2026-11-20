@@ -10,11 +10,13 @@ const fs = require('fs');
 const { ensureHistoryTables, syncHistoryCatalog } = require('./lib/history-sync');
 const { ensureMasterPoolTable, upsertMasterPoolItem, migrateLegacyCatalogToMasterPool, importMasterPoolSeed, getMasterPoolStats } = require('./lib/master-pool');
 const { syncLocalizedSearchAliases } = require('./lib/search-aliases');
+const { normalizeShop } = require('./lib/shop-normalize');
+const { syncMythicIconCandidates } = require('./lib/icon-pool-sync');
 
 const PORT = Number(process.env.PORT || 3000);
 const API_SHOP = 'https://itemshop.gg/api/v1/shop/league-of-legends';
 const API_ROTATIONS = 'https://itemshop.gg/api/v1/rotations';
-const PROJECT_UA = 'Mythic-Shop-Alert/1.5.2 (+self-hosted PWA)';
+const PROJECT_UA = 'Mythic-Shop-Alert/1.5.3 (+self-hosted PWA)';
 const ROOT = __dirname;
 const DB_PATH = path.resolve(ROOT, process.env.DATABASE_PATH || './data/mythic-shop.sqlite');
 fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
@@ -158,98 +160,6 @@ function getLocalizedSearchAliases() {
   }
 }
 
-function kstDate(date = new Date()) {
-  return new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit'
-  }).format(date);
-}
-
-function toNormalItem(item, sectionTitle) {
-  const stableKey = item.itemKey || item.id;
-  if (!stableKey) return null;
-  return {
-    key: stableKey,
-    id: item.id || null,
-    itemKey: item.itemKey || null,
-    name: item.name || '이름 없는 상품',
-    type: item.type || '기타',
-    rarity: item.rarity || null,
-    price: item.price || null,
-    images: item.images || { card: null, render: null },
-    availability: item.availability || { from: null, until: null },
-    soldOut: Boolean(item.soldOut),
-    sectionTitle,
-    trackable: Boolean(item.itemKey)
-  };
-}
-
-function normalizeShop(apiPayload) {
-  if (!apiPayload || !apiPayload.data || !Array.isArray(apiPayload.data.sections)) {
-    throw new Error('itemshop.gg 응답에 data.sections가 없습니다.');
-  }
-  const source = apiPayload.data;
-  const mythicSourceSections = source.sections.filter(section => /^mythic shop:/i.test(section.title || ''));
-
-  function normalizeSection(section) {
-    return {
-      title: section.title,
-      upcoming: Boolean(section.upcoming),
-      endsAt: section.endsAt || null,
-      items: (section.items || [])
-        .filter(item => !item.soldOut)
-        .map(item => toNormalItem(item, section.title))
-        .filter(Boolean)
-        .map(item => ({ ...item, upcoming: Boolean(section.upcoming) }))
-    };
-  }
-
-  const sections = mythicSourceSections.filter(section => !section.upcoming).map(normalizeSection);
-  const upcomingSections = mythicSourceSections.filter(section => section.upcoming).map(normalizeSection);
-
-  function dedupe(items) {
-    const map = new Map();
-    for (const item of items) {
-      const existing = map.get(item.key);
-      if (existing) {
-        existing.sections = [...new Set([...(existing.sections || [existing.sectionTitle]), ...(item.sections || [item.sectionTitle])])];
-        // If an item is in an active section and an upcoming section, active wins.
-        existing.upcoming = existing.upcoming && item.upcoming;
-      } else {
-        item.sections = [item.sectionTitle];
-        map.set(item.key, item);
-      }
-    }
-    return [...map.values()];
-  }
-
-  const currentItems = dedupe(sections.flatMap(section => section.items));
-  const upcomingItems = dedupe(upcomingSections.flatMap(section => section.items));
-  const catalogMap = new Map();
-  for (const item of [...upcomingItems, ...currentItems]) catalogMap.set(item.key, item); // Current item overwrites planned entry.
-
-  return {
-    game: source.game || 'league-of-legends',
-    shopDate: source.shopDate || null,
-    updatedAt: source.updatedAt || null,
-    expiresAt: source.expiresAt || null,
-    stale: Boolean(source.stale),
-    fetchedAt: apiPayload.meta?.generatedAt || new Date().toISOString(),
-    localDate: kstDate(),
-    totalShopItems: source.itemCount ?? null,
-    mythicItemCount: currentItems.length,
-    sections,
-    upcomingSections,
-    items: currentItems,
-    upcomingItems,
-    catalogItems: [...catalogMap.values()],
-    attribution: apiPayload.meta?.attribution || {
-      text: 'Data from itemshop.gg',
-      url: 'https://itemshop.gg/league-of-legends'
-    },
-    terms: apiPayload.meta?.terms || 'https://itemshop.gg/terms#api'
-  };
-}
-
 async function getJson(url, extraHeaders = {}) {
   const response = await fetch(url, {
     headers: { 'Accept': 'application/json', 'User-Agent': PROJECT_UA, ...extraHeaders },
@@ -302,6 +212,7 @@ async function sendFavoritesPush(newItems) {
 
 const SHOP_REFRESH_MAX_AGE_MS = Math.max(60_000, Number(process.env.SHOP_REFRESH_MAX_AGE_MS || 5 * 60 * 1000));
 let activeShopSyncPromise = null;
+let activeIconPoolSyncPromise = null;
 
 // One shared promise means concurrent page loads wait for the same refresh instead of
 // receiving the old DB snapshot while the startup refresh is still running.
@@ -317,6 +228,7 @@ async function performShopSync({ reason = 'poll', notify = true } = {}) {
   setState.run('shop_sync_error', '');
   try {
     const apiPayload = await getJson(API_SHOP);
+    const lastFetchedAt = new Date().toISOString();
     const normalized = normalizeShop(apiPayload);
     if (normalized.stale) {
       const message = 'itemshop.gg가 stale=true인 이전 데이터를 반환했습니다.';
@@ -335,6 +247,9 @@ async function performShopSync({ reason = 'poll', notify = true } = {}) {
     const currentKeys = normalized.items.map(item => item.key);
     const newlyAdded = isFirstSnapshot ? [] : normalized.items.filter(item => !previousSet.has(item.key));
     const now = new Date().toISOString();
+    // Keep the upstream shop's updatedAt/meta.generatedAt semantics intact.
+    // This timestamp records when this server actually fetched the upstream API.
+    normalized.lastFetchedAt = lastFetchedAt;
     const currentSet = new Set(currentKeys);
 
     const transaction = db.transaction(() => {
@@ -538,6 +453,9 @@ app.get('/api/health', (req, res) => {
     localizedSearchAliasItemCount: getLocalizedSearchAliases()?.itemCount || 0,
     localizedSearchAliasUnmatchedCount: getLocalizedSearchAliases()?.unmatchedCount || 0,
     localizedSearchAliasesError: stateValue('localized_search_aliases_error'),
+    mythicIconPoolSyncAt: stateValue('mythic_icon_pool_sync_at'),
+    mythicIconPoolCandidateCount: Number(stateValue('mythic_icon_pool_candidate_count', '0')) || 0,
+    mythicIconPoolSyncError: stateValue('mythic_icon_pool_sync_error'),
     historySyncing: stateValue('history_catalog_syncing', '0') === '1',
     historyError: stateValue('history_catalog_error')
   });
@@ -555,11 +473,23 @@ app.get('/api/shop/today', async (req, res) => {
   const row = db.prepare('SELECT fetched_at, payload_json FROM current_shop WHERE singleton = 1').get();
   if (!row) return res.status(503).json({ error: '상점 데이터를 가져오지 못했습니다.', refresh, detail: stateValue('shop_sync_error') });
   const shop = JSON.parse(row.payload_json);
+  // fetched_at is the server's persisted successful-fetch time. Keep it separate
+  // from the upstream updatedAt and meta.generatedAt values inside the snapshot.
+  const lastFetchedAt = shop.lastFetchedAt || row.fetched_at;
+  shop.lastFetchedAt = lastFetchedAt;
   if (refresh?.error || refresh?.stale) shop.stale = true;
-  res.json({ fetchedAt: row.fetched_at, shop, refresh: { updated: Boolean(refresh?.updated), stale: Boolean(refresh?.stale), error: refresh?.error || null } });
+  res.json({
+    fetchedAt: row.fetched_at,
+    lastFetchedAt,
+    shop,
+    refresh: { updated: Boolean(refresh?.updated), stale: Boolean(refresh?.stale), error: refresh?.error || null }
+  });
 });
 
-app.get('/api/catalog', (req, res) => {
+app.get('/api/catalog', async (req, res) => {
+  if (!stateValue('mythic_icon_pool_sync_at') && !stateValue('mythic_icon_pool_sync_error')) {
+    await runMythicIconPoolSync('first-catalog-request');
+  }
   const rows = db.prepare("SELECT item_json, active, eligibility_status, source, source_note, created_at, updated_at, last_observed_at FROM master_pool_items ORDER BY json_extract(item_json, '$.name') COLLATE NOCASE").all();
   const items = rows.map(row => {
     const item = JSON.parse(row.item_json);
@@ -731,6 +661,25 @@ if (seededMasterItems.inserted > 0 || !stateValue('master_pool_seed_import')) {
 }
 console.log(`[master-pool] ready: migrated ${migratedMasterItems} legacy entries; seed processed ${seededMasterItems.imported} entries (${seededMasterItems.inserted} new, ${seededMasterItems.alreadyPresent} already present).`);
 
+async function runMythicIconPoolSync(reason = 'scheduled') {
+  if (activeIconPoolSyncPromise) return activeIconPoolSyncPromise;
+  activeIconPoolSyncPromise = (async () => {
+    try {
+      const result = await syncMythicIconCandidates(db);
+      setState.run('mythic_icon_pool_sync_at', new Date().toISOString());
+      setState.run('mythic_icon_pool_sync_error', '');
+      setState.run('mythic_icon_pool_candidate_count', String(result.discovered));
+      console.log(`[master-pool-icons] ${reason}: ${result.discovered} Mythic icon candidates (${result.inserted} new, ${result.alreadyPresent} already present).`);
+      return result;
+    } catch (error) {
+      setState.run('mythic_icon_pool_sync_error', error.message);
+      console.warn(`[master-pool-icons] ${reason} failed:`, error.message);
+      return { error: error.message };
+    }
+  })().finally(() => { activeIconPoolSyncPromise = null; });
+  return activeIconPoolSyncPromise;
+}
+
 const server = app.listen(PORT, () => {
   console.log(`Mythic Shop Alert listening on http://localhost:${PORT}`);
 
@@ -742,9 +691,16 @@ const server = app.listen(PORT, () => {
   // provides the same recovery when a sleeping instance is first opened.
   cron.schedule('*/5 * * * *', () => { void ensureShopFresh('scheduled-freshness-retry'); }, { timezone: 'Asia/Seoul' });
 
-  // Refresh the Korean names for every Master Pool item once per day.
+  // Discover Mythic-rarity summoner icons from CommunityDragon, then refresh
+  // aliases so newly imported icons are searchable in Korean on the same startup.
+  setTimeout(async () => {
+    await runMythicIconPoolSync('startup');
+    await refreshLocalizedSearchAliases('startup');
+  }, 1800).unref();
+  cron.schedule('0 4 * * *', () => { void runMythicIconPoolSync('daily-icon-pool-refresh'); }, { timezone: 'Asia/Seoul' });
+
+  // Refresh the Korean names for every Master Pool item once per day, after icon discovery.
   // The localized data is cached in SQLite; page views do not download these files.
-  setTimeout(() => { void refreshLocalizedSearchAliases('startup'); }, 1800).unref();
   cron.schedule('10 4 * * *', () => { void refreshLocalizedSearchAliases('daily-localization-refresh'); }, { timezone: 'Asia/Seoul' });
 
   // Import any newly recorded historical rotations at startup and once daily.

@@ -56,5 +56,17 @@
     "EMOTE",
     "OTHER"
   ],
-  "seedFile": "data/master-pool-seed.json"
+  "seedFile": "data/master-pool-seed.json",
+  "runtimeDiscoveryV1_5_3": {
+    "category": "SUMMONER ICON",
+    "source": "https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/ko_kr/v1/summoner-icons.json",
+    "filter": {
+      "rarities.region": "riot",
+      "rarities.rarity": 4
+    },
+    "candidateCountAtCapture": 219,
+    "capturedAt": "2026-11-20",
+    "eligibilityWarning": "Riot rarity 4 is used to discover Mythic-rarity icon candidates. It does not prove Mythic Shop sale eligibility; items remain candidate until observed in live shop API or shop history.",
+    "importStrategy": "runtime startup and daily 04:00 Asia/Seoul; stable key lol:item:icon:{iconId}; merge into existing SQLite Master Pool"
+  }
 }
